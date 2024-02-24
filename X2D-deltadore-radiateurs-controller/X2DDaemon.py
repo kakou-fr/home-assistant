@@ -4,8 +4,10 @@ import time
 import serial
 import sys
 import configparser
+import datetime
+import subprocess
 
-sys.stdout = open('/var/log/x2ddaemon.log', 'a', buffering=1)
+sys.stdout = open('/var/log/X2Ddaemon/x2ddaemon.log', 'a', buffering=1)
 sys.stderr = sys.stdout
 
 
@@ -30,13 +32,34 @@ last_messages = {
     "zone3": ""
 }
 
+LOG_DIR = "/var/log/X2Ddaemon/"
+ORDERS_LOG_FILE = os.path.join(LOG_DIR, "ordres.log")
+MQTT_LOG_FILE = os.path.join(LOG_DIR, "mqtt.log")
+
 # Ouvrir le port série USB
 usb_handle = serial.Serial(USB_DEVICE, BAUDRATE)
+
+def printlog(message):
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"[{timestamp}] {message}")
+
+def log_mqtt_order(order):
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    with open(MQTT_LOG_FILE, "a") as mqtt_log:
+        mqtt_log.write(f"{timestamp} - {order}\n")
+
+def publish_current_state_to_mqtt(client):
+    for zone, state in last_messages.items():
+        topic = f"radiateurs/zones_actuel/zone{zone[4:]}"
+        payload = f"{state}"
+        payload = payload[:-1]
+        if payload:
+            client.publish(topic, payload, retain=True)
 
 # Fonction pour lire les derniers ordres depuis les fichiers de log de chaque zone
 def read_last_orders():
     for zone in last_messages.keys():
-        log_file = f"zone{zone[4:]}.log"
+        log_file = os.path.join(LOG_DIR, f"zone{zone[4:]}.log")
         if os.path.exists(log_file):
             with open(log_file, "r") as f:
                 lines = f.readlines()
@@ -53,27 +76,77 @@ def read_last_orders():
             # Si le fichier n'existe pas, envoyer "OffX" sur le port USB
             write_and_print_usb_data(f"Off{zone[4:]}",f"{zone[4:]}")
 
+def flush_mqtt_messages(client):
+    # Attendre jusqu'à ce que tous les messages MQTT en attente soient envoyés
+    time.sleep(5)
+    # Déconnexion propre du client MQTT
+    client.disconnect()
+
 # Callback lors de la réception d'un message MQTT
 def on_message(client, userdata, msg):
-    print("===> MQTT\n")
+    start_time = time.time()
     topic = msg.topic
     payload = msg.payload.decode('utf-8')
+    printlog("===> MQTT : "+topic+" = "+payload+"\n")
+
+    if "restart" in payload:
+        print("Received restart command. Exiting program.")
+        client.publish("radiateurs/etat", "unavailable", retain=True)
+        client.publish("radiateurs/ordre", "done", retain=True)
+        flush_mqtt_messages(client)
+        print("Restart now")
+        os._exit(0)  # Quitter le programme immédiatement
+    if "reboot" in payload:
+        print("Received reboot command. Rebooting the machine.")
+        client.publish("radiateurs/etat", "unavailable", retain=True)
+        client.publish("radiateurs/ordre", "done", retain=True)
+        flush_mqtt_messages(client)
+        subprocess.run(["sudo", "reboot"])  # Redémarrer la machine
+
     zone = topic.split('/')[-1]  # Extraire le numéro de la zone à partir du sujet MQTT
-   
+    order = f"{payload}{zone[4:]}"   
+
+    valid_zones = ['zone1', 'zone2', 'zone3']
+    if zone not in valid_zones:
+        print(f"Ignoring message for invalid zone: {zone}")
+        return
+
+    # Vérifier si l'ordre est valide (Sun, Moon, Hg, Off, On ou Asso)
+    valid_orders = ['Sun', 'Moon', 'Hg', 'Off', 'On', 'Asso']
+    if payload not in valid_orders:
+        print(f"Ignoring message with invalid order: {payload}")
+        return
+
     # Écrire le message sur le périphérique USB avec l'ordre concaténé à la zone
-    write_and_print_usb_data(f"{payload}{zone[4:]}",f"{zone[4:]}")
+    write_and_print_usb_data(order,f"{zone[4:]}")
     
     # Mettre à jour le dernier message de la zone
-    last_messages[f"zone{zone[4:]}"] = f"{payload}{zone[4:]}"
+    last_messages[f"zone{zone[4:]}"] = order
+    log_mqtt_order(order)
 
 # Fonction pour lire et afficher ce qui est présent sur le port USB
 def read_and_print_usb_data():
     while usb_handle.in_waiting > 0:
         print(usb_handle.read().decode('utf-8'), end='')
 
+def read_and_print_usb_data_mqtt():
+    if usb_handle.in_waiting > 0:
+        while usb_handle.in_waiting > 0:
+            data = usb_handle.read().decode('utf-8')
+            print(data, end='')
+        # Publier l'état d'émission dans "radiateurs/etat" avec retain
+        client.publish("radiateurs/etat", "ok", retain=True)
+    else:
+        printlog("unavailable")
+        # Publier "unavailable" dans "radiateurs/etat" avec retain
+        client.publish("radiateurs/etat", "unavailable", retain=True)
+
 # Fonction pour écrire sur le port USB et afficher ce qui est présent sur le port USB
-def write_and_print_usb_data(data, zone):
-    print("====>"+zone+" : "+data)
+def write_and_print_usb_data(data, zone, save_to_logs=True):
+    # Publier l'état actuel en MQTT après chaque envoi d'ordre
+    if save_to_logs:
+        publish_current_state_to_mqtt(client)
+    printlog("====>"+zone+" : "+data)
     read_and_print_usb_data()
     time.sleep(1)
     usb_handle.write(('N'+data+'\n').encode())
@@ -82,34 +155,23 @@ def write_and_print_usb_data(data, zone):
     time.sleep(1)
     read_and_print_usb_data()
 
-    print("====>"+zone+" : "+data)
+    printlog("====>"+zone+" : "+data)
     read_and_print_usb_data()
     time.sleep(1)
     usb_handle.write((data+'\n').encode())
     usb_handle.flush()  # Flush the write buffer
     # Lire et afficher ce qui est présent sur le port USB
     time.sleep(1)
-    read_and_print_usb_data()
-     
-    # Enregistrer l'ordre envoyé dans le fichier de log ordres.log
-    with open("ordres.log", "a") as ordres_log:
-        ordres_log.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {data}\n")
+    read_and_print_usb_data_mqtt()
+    if save_to_logs:    
+        # Enregistrer l'ordre envoyé dans le fichier de log ordres.log
+        with open(ORDERS_LOG_FILE, "a") as ordres_log:
+            ordres_log.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {data}\n")
     
-    # Enregistrer le message dans le fichier de journal de la zone
-    log_file = f"zone{zone}.log"
-    with open(log_file, "a") as f:
-        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {data}\n")
-
-# Fonction pour récupérer les valeurs actuelles des topics MQTT
-def get_current_orders_from_mqtt():
-    for zone in last_messages.keys():
-        topic = f"{MQTT_TOPIC}/{zone}"
-        client.subscribe(topic)
-        client.publish(topic, "")  # Demande la valeur actuelle en publiant un message vide
-        time.sleep(0.5)  # Attendre un court instant pour la réception du message
-        client.loop(timeout=1)  # Attendre la réception du message
-        # Les valeurs seront mises à jour dans la fonction on_message
- 
+        # Enregistrer le message dans le fichier de journal de la zone
+        log_file = os.path.join(LOG_DIR, f"zone{zone}.log")
+        with open(log_file, "a") as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {data}\n")
 
 # Afficher le contenu du port usb
 time.sleep(5)  # Attente de 5 secondes a la connection
@@ -122,14 +184,20 @@ client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 # Connexion au broker MQTT
 client.connect(MQTT_BROKER, MQTT_PORT)
 
+# Publier "on" dans "radiateurs/etat" au démarrage avec retain
+client.publish("radiateurs/ordre", "on", retain=True)
+
 # Abonnement au topic MQTT pour toutes les zones
+client.subscribe("radiateurs/ordre")
 client.subscribe(MQTT_TOPIC + "/#")
 
 start_time = time.time()
+write_and_print_usb_data("Asso1","1", False)
+write_and_print_usb_data("Asso2","2", False)
+write_and_print_usb_data("Asso3","3", False)
 read_last_orders()
-write_and_print_usb_data("Asso1","1")
-write_and_print_usb_data("Asso2","2")
-write_and_print_usb_data("Asso3","3")
+
+publish_current_state_to_mqtt(client)
 try:
     while True:
         # Lecture des derniers ordres au démarrage
