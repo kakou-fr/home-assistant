@@ -185,6 +185,7 @@ client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
 client.connect(MQTT_BROKER, MQTT_PORT)
 
 # Publier "on" dans "radiateurs/etat" au démarrage avec retain
+client.publish("radiateurs/etat", "on", retain=True)
 client.publish("radiateurs/ordre", "on", retain=True)
 
 # Abonnement au topic MQTT pour toutes les zones
