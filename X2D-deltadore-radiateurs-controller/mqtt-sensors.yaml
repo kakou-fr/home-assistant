@@ -1,0 +1,25 @@
+- name: "Controller Radiadteurs"
+  state_topic: "radiateurs/etat"
+
+- name: "Controller Radiadteurs - Zone 1 - Definie"
+  state_topic: "radiateurs/zones/zone1"
+
+- name: "Controller Radiadteurs - Zone 1 - Actuelle"
+  state_topic: "radiateurs/zones_actuel/zone1"
+
+- name: "Controller Radiadteurs - Zone 2 - Definie"
+  state_topic: "radiateurs/zones/zone2"
+
+- name: "Controller Radiadteurs - Zone 2 - Actuelle"
+  state_topic: "radiateurs/zones_actuel/zone2"
+
+
+- name: "Controller Radiadteurs - Zone 3 - Definie"
+  state_topic: "radiateurs/zones/zone3"
+
+- name: "Controller Radiadteurs - Zone 3 - Actuelle"
+  state_topic: "radiateurs/zones_actuel/zone3"
+
+- name: "Controller Radiadteurs - Ordre"
+  state_topic: "radiateurs/ordre"
+

@@ -39,6 +39,8 @@ MQTT_LOG_FILE = os.path.join(LOG_DIR, "mqtt.log")
 # Ouvrir le port série USB
 usb_handle = serial.Serial(USB_DEVICE, BAUDRATE)
 
+state="on"
+
 def printlog(message):
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(f"[{timestamp}] {message}")
@@ -76,12 +78,6 @@ def read_last_orders():
             # Si le fichier n'existe pas, envoyer "OffX" sur le port USB
             write_and_print_usb_data(f"Off{zone[4:]}",f"{zone[4:]}")
 
-def flush_mqtt_messages(client):
-    # Attendre jusqu'à ce que tous les messages MQTT en attente soient envoyés
-    time.sleep(5)
-    # Déconnexion propre du client MQTT
-    client.disconnect()
-
 # Callback lors de la réception d'un message MQTT
 def on_message(client, userdata, msg):
     start_time = time.time()
@@ -93,15 +89,12 @@ def on_message(client, userdata, msg):
         print("Received restart command. Exiting program.")
         client.publish("radiateurs/etat", "unavailable", retain=True)
         client.publish("radiateurs/ordre", "done", retain=True)
-        flush_mqtt_messages(client)
-        print("Restart now")
-        os._exit(0)  # Quitter le programme immédiatement
+        state="restart"
     if "reboot" in payload:
         print("Received reboot command. Rebooting the machine.")
         client.publish("radiateurs/etat", "unavailable", retain=True)
         client.publish("radiateurs/ordre", "done", retain=True)
-        flush_mqtt_messages(client)
-        subprocess.run(["sudo", "reboot"])  # Redémarrer la machine
+        state="reboot"
 
     zone = topic.split('/')[-1]  # Extraire le numéro de la zone à partir du sujet MQTT
     order = f"{payload}{zone[4:]}"   
@@ -118,10 +111,11 @@ def on_message(client, userdata, msg):
         return
 
     # Écrire le message sur le périphérique USB avec l'ordre concaténé à la zone
-    write_and_print_usb_data(order,f"{zone[4:]}")
+    #write_and_print_usb_data(order,f"{zone[4:]}")
     
     # Mettre à jour le dernier message de la zone
     last_messages[f"zone{zone[4:]}"] = order
+    log_order(f"{zone[4:]}", order)
     log_mqtt_order(order)
 
 # Fonction pour lire et afficher ce qui est présent sur le port USB
@@ -163,6 +157,9 @@ def write_and_print_usb_data(data, zone, save_to_logs=True):
     # Lire et afficher ce qui est présent sur le port USB
     time.sleep(1)
     read_and_print_usb_data_mqtt()
+    log_order(zone, data, save_to_logs)
+
+def log_order(zone, data, save_to_logs=True):
     if save_to_logs:    
         # Enregistrer l'ordre envoyé dans le fichier de log ordres.log
         with open(ORDERS_LOG_FILE, "a") as ordres_log:
@@ -201,6 +198,15 @@ read_last_orders()
 publish_current_state_to_mqtt(client)
 try:
     while True:
+        if state == "restart":
+            client.disconnect()
+            print("Restart now")
+            os._exit(0)  # Quitter le programme immédiatement
+        if state == "reboot":
+            client.disconnect()
+            print("Reboot now")
+            subprocess.run(["sudo", "reboot"])  # Redémarrer la machine
+
         # Lecture des derniers ordres au démarrage
         if time.time() - start_time > 20:
                 start_time = time.time()

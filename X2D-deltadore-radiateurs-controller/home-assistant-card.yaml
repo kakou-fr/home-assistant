@@ -1,0 +1,27 @@
+type: entities
+entities:
+  - entity: sensor.controller_radiadteurs
+    name: Etat
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_ordre
+    name: Ordre
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_1_actuelle
+    name: Zone 1 - Actuelle
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_1_definie
+    name: ' Zone 1 - Definie'
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_2_actuelle
+    name: ' Zone 3 - Actuelle'
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_2_definie
+    name: ' Zone 2 - Definie'
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_3_actuelle
+    name: ' Zone 3 - Actuelle'
+    secondary_info: last-changed
+  - entity: sensor.controller_radiadteurs_zone_3_definie
+    name: ' Zone 3 - Definie'
+    secondary_info: last-changed
+
