@@ -3,14 +3,12 @@ esphome:
   friendly_name: esp32-presence-sensor
 
 esp32:
-#  board: esp32dev
-  board: wemos_d1_mini32
+  board: lolin_s2_mini
   framework:
     type: arduino
 
 # Enable logging
 logger:
-  baud_rate: 0
 
 # Enable Home Assistant API
 api:
@@ -44,7 +42,7 @@ ld2410:
 
 status_led:
   pin:
-     number: GPIO2
+     number: GPIO15
      inverted: TRUE
      
 web_server:
@@ -53,8 +51,8 @@ web_server:
         username: admin
         password: !secret web_server_password  
 uart:
-  tx_pin: GPIO01
-  rx_pin: GPIO03
+  tx_pin: GPIO18
+  rx_pin: GPIO33
   baud_rate: 256000
   parity: NONE
   stop_bits: 1
@@ -68,7 +66,6 @@ globals:
     type: int
     restore_value: no
     initial_value: '0'
-
 
 number:
   - platform: ld2410
@@ -138,9 +135,13 @@ binary_sensor:
     out_pin_presence_status:
       name: Radar out pin presence status
   - platform: status
-    name: "ESP32 Presence Sensor Status"
+    name: "ESP32 Presence Sensor Status"  
+  - platform: gpio
+    pin: 16
+    name: "broche gpio présence"
+    device_class: presence         
 
-i2c:
+#i2c:
   
 sensor:
   # Uptime sensor.
@@ -152,11 +153,11 @@ sensor:
     name: ESP32 Presence Sensor Signal
     update_interval: 60s
     
-  - platform: bh1750
-    name: "BH1750 Illuminance"
-    address: 0x23
-    update_interval: 20s
-    unit_of_measurement: lux
+ # - platform: bh1750
+ #   name: "BH1750 Illuminance"
+ #   address: 0x23
+ #   update_interval: 20s
+ #   unit_of_measurement: lux
 
   - platform: internal_temperature
     name: "Internal Temperature"
