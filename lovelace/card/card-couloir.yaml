@@ -1,0 +1,25 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Couloir
+      - entity_action: light.lumiere_couloir
+      - room: Couloir
+      - icon: door-open
+      - bg_color: "rgb(10,50,60)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.couloir_th_temperature
+      - entity_humidity: sensor.couloir_th_humidity
+      - room: Couloir
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: Couloir
+      - entity_show_smoke: "input_boolean.boolean_true"
+      - entity_show_door: "input_boolean.boolean_true"

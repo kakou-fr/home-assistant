@@ -1,0 +1,216 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Salon
+      - entity_action: light.lumiere_salon
+      - room: "Salon bas"
+      - icon: sofa
+      - bg_color: "rgb(50,50,60)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.salon_bas_th_temperature
+      - entity_humidity: sensor.salon_bas_th_humidity
+      - entity_lx: sensor.salon_presence_sensor_illuminance
+      - room: "Salon bas"
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: "Salon bas"
+      - camera_stream: camera.salon
+      - tv_power: scene.tv_salon_power
+      - entity_show_smoke: "input_boolean.boolean_true"
+      - entity_show_door: "input_boolean.boolean_true"
+  - type: conditional
+    conditions:
+      - entity: remote.tv_salon
+        state: "on"
+    card:
+      type: custom:decluttering-card
+      template: mediaplayer_button_template
+      variables:
+        - entity: media_player.tv_salon_2
+  - type: conditional
+    conditions:
+      - entity: remote.tv_salon
+        state: "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: freebox_button_template
+          variables:
+            - position: left
+            - icon: power
+            - code: power
+        - type: custom:decluttering-card
+          template: freebox_button_template
+          variables:
+            - position: center
+            - icon: minus
+            - code: prgm_dec
+        - type: custom:decluttering-card
+          template: freebox_button_template
+          variables:
+            - position: right
+            - icon: plus
+            - code: prgm_inc
+  - type: conditional
+    conditions:
+      - entity: remote.tv_salon
+        state: "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: lg_barson_button_template
+          variables:
+            - position: left
+            - icon: volume-minus
+            - entity: scene.bar_son_2
+        - type: custom:decluttering-card
+          template: lg_barson_button_template
+          variables:
+            - position: right
+            - icon: volume-plus
+            - entity: scene.bar_son
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Salon
+          - position: left
+          - entity: light.lumiere_salon
+          - icon: ceiling-light-multiple
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Petite
+          - position: center
+          - entity: light.petite_lumiere_salon
+          - icon: floor-lamp
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Gauche
+          - position: center
+          - entity: light.lumiere_salon_left
+          - icon: ceiling-light
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Droite
+          - position: right
+          - entity: light.lumiere_salon_right
+          - icon: ceiling-light
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: light_template_full
+        variables:
+          - name: Lumière Canapé
+          - entity: light.lumiere_canape
+      - type: custom:decluttering-card
+        template: light_template_full
+        variables:
+          - name: Lumière Coin TV
+          - entity: light.lumiere_coin_tv
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Mur
+          - entity: switch.switch_tv_bas
+          - entity_power: sensor.switch_tv_bas_power
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Prise TV
+          - entity: switch.switch_tv_freebox
+          - entity_power: sensor.switch_tv_freebox_power
+          - position: center
+      - type: conditional
+        condition: and
+        conditions:
+          - entity: switch.switch_tv_freebox
+            state:
+              - "on"
+          - entity: remote.tv_salon
+            state:
+              - "off"
+              - unavailable
+        card:
+          type: custom:stack-in-card
+          mode: horizontal
+          cards:
+            - type: custom:decluttering-card
+              template: remote_tv_template
+              variables:
+                - name: TV
+                - entity: scene.tv_salon_power
+                - position: right
+                - icon: television
+      - type: conditional
+        conditions:
+          - entity: remote.tv_salon
+            state: "on"
+        card:
+          type: custom:stack-in-card
+          mode: horizontal
+          cards:
+            - type: custom:decluttering-card
+              template: remote_tv_template
+              variables:
+                - name: TV
+                - entity: input_boolean.telecommande_freebox
+                - position: right
+                - icon: remote-tv
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Meuble
+          - entity: switch.switch_canape
+          - entity_power: sensor.switch_canape_power
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Canape
+          - entity: switch.switch_salon_meuble
+          - entity_power: sensor.switch_salon_meuble_power
+          - position: right
+  - type: conditional
+    conditions:
+      - entity: input_boolean.telecommande_freebox
+        state: "on"
+      - entity: remote.tv_salon
+        state: "on"
+    card: !include /config/lovelace/card/card-telecommande-freebox.yaml
+  - type: custom:mushroom-vacuum-card
+    entity: vacuum.robot_aspirateur_salon
+    name: Aspirateur
+    icon_animation: true
+    secondary_info: last-changed
+    tap_action:
+      action: more-info
+    commands:
+      - start_pause
+      - stop
+      - locate
+      - return_home

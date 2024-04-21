@@ -1,0 +1,120 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Salon haut
+      - entity_action: light.lumiere_salon_haut
+      - room: "Salon haut"
+      - icon: chef-hat
+      - bg_color: "rgb(0,80,0)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.salon_haut_th_temperature
+      - entity_humidity: sensor.salon_haut_th_humidity
+      - room: "Salon haut"
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: "Salon haut"
+      - tv_power: scene.tv_haut_power
+      - entity_show_smoke: "input_boolean.boolean_true"
+  - type: conditional
+    conditions:
+      - entity: media_player.lg_tv_remote
+        state: "on"
+    card:
+      type: custom:decluttering-card
+      template: mediaplayer_button_template
+      variables:
+        - entity: media_player.lg_tv_remote
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: conditional
+        conditions:
+          - entity: switch.switch_tv_salon_haut
+            state: "on"
+          - entity: media_player.lg_tv_remote
+            state: "off"
+        card:
+          type: custom:button-card
+          color_type: blank-card
+      - type: conditional
+        conditions:
+          - entity: switch.switch_tv_salon_haut
+            state: "on"
+        card:
+          type: custom:decluttering-card
+          template: lg_button_template
+          variables:
+            - entity: media_player.lg_tv_remote
+            - entity_action: scene.tv_haut_power
+            - position: left
+      - type: conditional
+        conditions:
+          - entity: media_player.lg_tv_remote
+            state: "on"
+        card:
+          type: custom:stack-in-card
+          mode: horizontal
+          cards:
+            - type: custom:decluttering-card
+              template: button_template
+              variables:
+                - name: Power On
+                - icon: power
+                - entity: scene.tv_Salonhaut
+                - position: right
+      - type: conditional
+        conditions:
+          - entity: media_player.lg_tv_remote
+            state: "off"
+        card:
+          type: custom:button-card
+          color_type: blank-card
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Salon haut
+          - position: left
+          - entity: light.lumiere_salon_haut
+          - icon: ceiling-light
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Couloir haut
+          - position: right
+          - entity: light.lumiere_couloir_haut
+          - icon: ceiling-light
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Mur
+          - entity: switch.switch_tv_haut
+          - entity_power: sensor.switch_tv_haut_power
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: TV
+          - entity: switch.switch_tv_salon_haut
+          - entity_power: sensor.switch_tv_salon_haut_power
+          - position: center
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: 4G/Wifi
+          - entity: switch.switch_wifi_4g
+          - entity_power: sensor.switch_wifi_4g_power
+          - position: right

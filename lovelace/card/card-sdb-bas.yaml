@@ -1,0 +1,13 @@
+type: custom:decluttering-card
+template: mini_room_card_template
+variables:
+  - room: "SDB bas"
+  - icon: "bathtub"
+  - bg_color: "rgb(53,100,153)"
+  - entity_action: "light.lumiere_sdb_bas"
+  - entity_temperature: "sensor.sdb_bas_th_temperature"
+  - entity_humidity: "sensor.sdb_bas_th_humidity"
+  - entity_lx: ""
+  - tv_power: ""
+  - camera_stream: ""
+  - entity_show_flood: "input_boolean.boolean_true"

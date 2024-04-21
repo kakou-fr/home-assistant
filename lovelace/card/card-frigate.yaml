@@ -1,0 +1,31 @@
+type: custom:frigate-card
+cameras:
+  - camera_entity: camera.devant
+    live_provider: go2rtc
+    title: Devant
+    triggers:
+      motion: true
+  - camera_entity: camera.salon
+    live_provider: go2rtc
+    title: Salon
+    triggers:
+      motion: true
+  - camera_entity: camera.bureau
+    title: Bureau
+    live_provider: go2rtc
+    triggers:
+      motion: true
+view:
+  default: live
+  update_cycle_camera: true
+  update_seconds: 10
+  scan:
+    enabled: true
+  update_force: true
+menu:
+  style: hover
+  buttons:
+    frigate:
+      enabled: true
+dimensions:
+  aspect_ratio_mode: dynamic

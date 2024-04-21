@@ -1,0 +1,59 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Cuisine
+      - entity_action: light.lumiere_cuisine
+      - room: Cuisine
+      - icon: chef-hat
+      - bg_color: "rgb(0,80,0)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.cuisine_th_temperature
+      - entity_humidity: sensor.cuisine_th_humidity
+      - entity_lx: sensor.esp32_presence_sensor_1_bh1750_illuminance
+      - room: Cuisine
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: Cuisine
+      - tv_power: switch.switch_tv_cuisine
+      - entity_show_smoke: "input_boolean.boolean_true"
+      - entity_show_flood: "input_boolean.boolean_true"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Prise TV
+          - entity: switch.switch_tv_cuisine
+          - entity_power: sensor.switch_tv_cuisine_electric_consumption_w
+          - position: left
+          - icon: television-classic
+      - type: conditional
+        conditions:
+          - entity: switch.switch_tv_cuisine
+            state: "on"
+        card:
+          type: custom:stack-in-card
+          mode: horizontal
+          cards:
+            - type: custom:decluttering-card
+              template: button_icon_template
+              variables:
+                - entity: scene.tv_cuisine
+                - position: center
+                - icon: volume-high
+      - type: custom:decluttering-card
+        template: button_template
+        variables:
+          - name: Cuisine
+          - entity: switch.switch_tv_cuisine
+          - position: right
+          - icon: ceiling-light

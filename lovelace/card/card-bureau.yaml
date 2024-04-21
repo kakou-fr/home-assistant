@@ -1,0 +1,159 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Bureau
+      - entity_action: light.lumiere_bureau_all
+      - room: Bureau
+      - icon: printer-3d
+      - bg_color: "rgb(0,0,70)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.bureau_th_temperature
+      - entity_humidity: sensor.bureau_th_humidity
+      - entity_lx: sensor.esp32_presence_sensor_2_bh1750_illuminance
+      - room: Bureau
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: Bureau
+      - camera_stream: camera.bureau
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Bureau
+          - position: left
+          - entity: light.lumiere_bureau
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: Table
+          - position: center
+          - entity: light.bureau_table_lumiere
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: VAM8B
+          - position: center
+          - entity: light.lumiere_vam8b
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: VAM8D
+          - position: center
+          - entity: light.lumiere_vam8d
+      - type: custom:decluttering-card
+        template: light_template
+        variables:
+          - name: BLV
+          - position: right
+          - entity: light.lumiere_blv
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: light_template_full
+        variables:
+          - name: Nanoleaf
+          - entity: light.nanoleafs
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: 3D Printers
+          - entity: switch.switch_3dprinter
+          - entity_power: sensor.switch_3dprinter_power
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: 3D Panel Controller
+          - entity: switch.switch_printer_panel
+          - entity_power: sensor.switch_printer_panel_power
+          - position: right
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: VAM8B
+          - entity: switch.printer_vam8b
+          - entity_power: sensor.printer_vam8b_power
+          - position: left
+          - icon: printer-3d
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: VAM8D
+          - entity: switch.printer_vam8d
+          - entity_power: sensor.printer_vam8d_power
+          - position: right
+          - icon: printer-3d
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: VKING
+          - entity: switch.printer_vking
+          - entity_power: sensor.printer_vking_power
+          - position: left
+          - icon: printer-3d
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: BLV
+          - entity: switch.printer_blv
+          - entity_power: sensor.printer_blv_power
+          - position: right
+          - icon: printer-3d
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: RPI VKING
+          - entity: switch.switch_rpi_vking
+          - entity_power: sensor.printer_vam8b_power
+          - position: left
+          - icon: pi-box
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: BLV
+          - entity: switch.switch_rpi_blv
+          - entity_power: sensor.switch_rpi_blv_power
+          - position: right
+          - icon: pi-box
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: RPI VAM8B
+          - entity: switch.switch_rpi_vam8b
+          - entity_power: sensor.switch_rpi_vam8b_power
+          - position: left
+          - icon: pi-box
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: VAM8D
+          - entity: switch.switch_rpi_vam8d
+          - entity_power: sensor.switch_rpi_vam8d_power
+          - position: right
+          - icon: pi-box

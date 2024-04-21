@@ -1,0 +1,249 @@
+type: vertical-stack
+title: Freebox TV
+cards:
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:button-card
+        color_type: blank-card
+      - type: custom:button-card
+        color_type: blank-card
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: power
+          - code: power
+          - icon_color: red
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: numeric-1
+          - code: "1"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: numeric-2
+          - code: "2"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: numeric-3
+          - code: "3"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: numeric-4
+          - code: "4"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: numeric-5
+          - code: "5"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: numeric-6
+          - code: "6"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: numeric-7
+          - code: "7"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: numeric-8
+          - code: "8"
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: numeric-9
+          - code: "9"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:button-card
+        color_type: blank-card
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: numeric-0
+          - code: "0"
+      - type: custom:button-card
+        color_type: blank-card
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: backspace-outline
+          - code: red
+          - icon_color: red
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: arrow-up-bold-outline
+          - code: up
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: card-search-outline
+          - code: blue
+          - icon_color: blue
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: arrow-left-bold-outline
+          - code: left
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: checkbox-marked-circle-outline
+          - code: ok
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: arrow-right-bold-outline
+          - code: right
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: menu-open
+          - code: green
+          - icon_color: green
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: arrow-down-bold-outline
+          - code: down
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: information-variant
+          - code: yellow
+          - icon_color: yellow
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: devices
+          - code: "home,home,ok,3"
+          - icon_color: blue
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: home
+          - code: "home,home"
+          - icon_color: red
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: netflix
+          - code: "home,home,right,down,down,down,ok"
+          - icon_color: yellow
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: volume-plus
+          - code: vol_inc
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: volume-mute
+          - code: mute
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: pan-up
+          - code: prgm_inc
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: volume-minus
+          - code: vol_dec
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: record-rec
+          - code: rec
+          - icon_color: red
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: pan-down
+          - code: prgm_dec
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: left
+          - icon: skip-backward-outline
+          - code: bwd
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: center
+          - icon: play-pause
+          - code: play
+      - type: custom:decluttering-card
+        template: freebox_button_template
+        variables:
+          - position: right
+          - icon: skip-forward-outline
+          - code: fwd
+

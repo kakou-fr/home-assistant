@@ -1,0 +1,99 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Extérieur
+      - entity_action: light.lumieres_exterieur
+      - room: "Exterieur"
+      - icon: tree
+      - bg_color: "rgb(60,38,38)"
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: weather
+        entity: weather.soulangis
+        show_conditions: true
+        show_temperature: false
+      - type: template
+        content: >-
+          {% if states.sun.sun %} {{
+          (as_timestamp(states.sun.sun.attributes.next_rising)) |
+          timestamp_custom(('%H:%M') )}} {% endif %}
+        icon: mdi:weather-sunset-up
+      - type: template
+        content: >-
+          {% if states.sun.sun %} {{
+          (as_timestamp(states.sun.sun.attributes.next_setting)) |
+          timestamp_custom(('%H:%M') )}} {% endif %}
+        icon: mdi:weather-sunset-down
+      - type: template
+        content: "{{ states(entity) | float(0) | round(0) }}°C"
+        icon: mdi:thermometer
+        icon_color: |-
+          {% if states(entity) | float(0) |round(0) < 0 %}
+            blue
+          {% elif states(entity) | float(0) |round(0) < 11 %}
+            yellow
+          {% elif states(entity) | float(0) |round(0) < 17 %}
+            orange
+          {% elif states(entity) | float(0) |round(0) < 24 %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        entity: sensor.soulangis_temperature
+      - type: template
+        content: "{{ states(entity) | float(0) | round(0) }}%"
+        icon: mdi:water-percent
+        icon_color: |-
+          {% if states(entity) | float(0) |round(0) < 40 %}
+            yellow
+          {% elif states(entity) | float(0) |round(0) < 60 %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        entity: sensor.soulangis_humidity
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.exterieur_devant_th_temperature
+      - entity_humidity: sensor.exterieur_devant_th_humidity
+      - entity_lx: ""
+      - room: "Exterieur"
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: "Exterieur"
+      - camera_stream: camera.devant
+      - tv_power: ""
+      - entity_show_smoke: ""
+      - entity_show_door: "input_boolean.boolean_true"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Devant
+          - entity: light.switch_lumiere_exterieur
+          - entity_power: sensor.switch_lumiere_exterieur_electric_consumption_w
+          - position: left
+          - icon: track-light
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Derrière
+          - entity: light.switch_lumiere_exterieur_2
+          - entity_power: sensor.switch_lumiere_exterieur_electric_consumption_w_2
+          - position: right
+          - icon: track-light

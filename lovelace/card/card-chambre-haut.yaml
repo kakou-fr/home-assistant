@@ -1,0 +1,12 @@
+type: custom:decluttering-card
+template: mini_room_card_template
+variables:
+  - room: "Chambre Haut"
+  - icon: "face-woman"
+  - bg_color: "rgb(100,0,153)"
+  - entity_action: "light.lumiere_dressing"
+  - entity_temperature: "sensor.chambre_haut_th_temperature"
+  - entity_humidity: "sensor.chambre_haut_th_humidity"
+  - entity_lx: ""
+  - tv_power: ""
+  - camera_stream: ""

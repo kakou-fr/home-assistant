@@ -1,0 +1,998 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_allroom_template
+    variables:
+      - name: Maison
+      - icon: warehouse
+      - entity_action: ""
+      - bg_color: "rgb(0,38,38)"
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: entity
+        entity: sensor.rte_tempo_cycle_jours_restants_bleu
+        icon: mdi:square-rounded
+        icon_color: blue
+      - type: entity
+        entity: sensor.rte_tempo_cycle_jours_restants_blanc
+        icon: mdi:square-rounded
+        icon_color: white
+      - type: entity
+        entity: sensor.rte_tempo_cycle_jours_restants_rouge
+        icon: mdi:square-rounded
+        icon_color: red
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: template
+        entity: sensor.rte_tempo_couleur_actuelle
+        icon: |-
+          {% set tempo = states('sensor.rte_tempo_couleur_actuelle') %}
+          {% if tempo == 'Bleu' %} mdi:square-rounded
+          {% elif tempo == 'Blanc' %} mdi:square-rounded
+          {% elif tempo == 'Rouge' %} mdi:square-rounded
+          {% else %} mdi:square-rounded
+          {% endif %}
+        content: >-
+          Now ( {% set tempo = states('sensor.periodetarif') %} {% if
+          tempo == 'HPJB' or tempo == 'HPJW' or tempo == 'HPJR'%} HP {%
+          elif tempo == 'HCJB' or tempo == 'HCJW' or tempo == 'HCJR'%}
+          HC {% endif %} / {{states('sensor.edf_tempo_prix_actuel')}}
+          c€)
+        icon_color: |-
+          {% set tempo = states('sensor.rte_tempo_couleur_actuelle') %}
+          {% if tempo == 'Bleu' %} blue
+          {% elif tempo == 'Blanc' %} primary_color
+          {% elif tempo == 'Rouge' %} red
+          {% else %} yellow
+          {% endif %}
+        double_tap_action:
+          action: more-info
+        tap_action:
+          action: more-info
+        hold_action:
+          action: more-info
+      - type: template
+        entity: sensor.rte_tempo_prochaine_couleur
+        icon: |-
+          {% set tempo = states('sensor.rte_tempo_prochaine_couleur') %}
+          {% if tempo == 'Bleu' %} mdi:square-rounded
+          {% elif tempo == 'Blanc' %} mdi:square-rounded
+          {% elif tempo == 'Rouge' %} mdi:square-rounded
+          {% else %} mdi:square-rounded
+          {% endif %}
+        content: Demain
+        icon_color: |-
+          {% set tempo = states('sensor.rte_tempo_prochaine_couleur') %}
+          {% if tempo == 'Bleu' %} blue
+          {% elif tempo == 'Blanc' %} primary_color
+          {% elif tempo == 'Rouge' %} red
+          {% else %} yellow
+          {% endif %}
+        double_tap_action:
+          action: more-info
+        tap_action:
+          action: more-info
+        hold_action:
+          action: more-info
+      - type: template
+        entity: input_text.edt_tempo
+        icon: |-
+          {% set tempo = states('input_text.edt_tempo') %}
+          {% if tempo == 'Bleu' %} mdi:square-rounded
+          {% elif tempo == 'Blanc' %} mdi:square-rounded
+          {% elif tempo == 'Rouge' %} mdi:square-rounded
+          {% else %} mdi:square-rounded
+          {% endif %}
+        content: Hier
+        icon_color: |-
+          {% set tempo = states('input_text.edt_tempo') %}
+          {% if tempo == 'Bleu' %} blue
+          {% elif tempo == 'Blanc' %} primary_color
+          {% elif tempo == 'Rouge' %} red
+          {% else %} yellow
+          {% endif %}
+        double_tap_action:
+          action: more-info
+        tap_action:
+          action: more-info
+        hold_action:
+          action: more-info
+    alignment: end
+  - type: custom:stack-in-card
+    mode: vertical
+    cards:
+      - type: custom:stack-in-card
+        mode: vertical
+        card_mod:
+          style: |
+            ha-card {
+                  margin-left: 0px!important;
+                  margin-right: 0px!important;
+                  margin-top: 0px!important;
+                  margin-bottom: 2px!important;
+            }
+        cards:
+          - type: custom:stack-in-card
+            mode: horizontal
+            card_mod:
+              style: |
+                ha-card {
+                      margin-left: 0px!important;
+                      margin-right: 0px!important;
+                      margin-top: 0px!important;
+                      margin-bottom: -4px!important;
+                }
+            cards:
+              - type: gauge
+                entity: sensor.puissanceapparente
+                needle: true
+                name: VA
+                min: 0
+                max: 10000
+                segments:
+                  - from: 0
+                    color: green
+                  - from: 2500
+                    color: yellow
+                  - from: 5000
+                    color: orange
+                  - from: 7000
+                    color: red
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if states('sensor.puissanceapparente') | float > 1200 %}
+                        animation: borderPulse 2s ease-out infinite;
+                      {% endif %}
+                    }
+                    @keyframes borderPulse {
+                      50% {
+                        box-shadow: 0 0 50px red;
+                      }
+                    }
+                    ha-card > div.name {
+                      font-size: 0px !important;
+                    }
+                    mushroom-state-info {
+                          text-align: end !important;
+                    }
+                    ha-card {
+                      background: rgb(38,38,38) !important;
+                      border: none!important;
+                      border-radius: 5px !important;
+                      justify-content: center!important;
+                      margin-left: 4px!important; margin-right: 2px!important; margin-top: 2px!important; margin-bottom: 0px!important;
+                      --icon-size: 90px !important;
+                      --card-primary-font-size: 25px !important;
+                      --card-secondary-font-size: 15px !important;
+                    }
+                    mushroom-shape-icon {
+                      --shape-outline-color: none!important;
+                      --shape-color: rgb(38,38,38) !important;
+                      --shape-color-disabled: rgb(38,38,38) !important;
+                    }
+              - type: gauge
+                entity: sensor.puissance_apparente_maison
+                needle: true
+                name: W
+                min: 0
+                max: 10000
+                segments:
+                  - from: 0
+                    color: green
+                  - from: 2500
+                    color: yellow
+                  - from: 5000
+                    color: orange
+                  - from: 7000
+                    color: red
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if states('sensor.puissanceapparente') | float > 1200 %}
+                        animation: borderPulse 2s ease-out infinite;
+                      {% endif %}
+                    }
+                    @keyframes borderPulse {
+                      50% {
+                        box-shadow: 0 0 50px red;
+                      }
+                    }
+                    ha-card > div.name {
+                      font-size: 0px !important;
+                    }
+                    mushroom-state-info {
+                          text-align: end !important;
+                    }
+                    ha-card {
+                      background: rgb(38,38,38) !important;
+                      border: none!important;
+                      border-radius: 5px !important;
+                      justify-content: center!important;
+                      margin-left: 4px!important; margin-right: 2px!important; margin-top: 2px!important; margin-bottom: 0px!important;
+                      --icon-size: 90px !important;
+                      --card-primary-font-size: 25px !important;
+                      --card-secondary-font-size: 15px !important;
+                    }
+                    mushroom-shape-icon {
+                      --shape-outline-color: none!important;
+                      --shape-color: rgb(38,38,38) !important;
+                      --shape-color-disabled: rgb(38,38,38) !important;
+                    }
+  - type: custom:stack-in-card
+    mode: vertical
+    cards:
+      - type: custom:stack-in-card
+        mode: vertical
+        card_mod:
+          style: |
+            ha-card {
+                  margin-left: 0px!important;
+                  margin-right: 0px!important;
+                  margin-top: 0px!important;
+                  margin-bottom: 2px!important;
+            }
+        cards:
+          - type: custom:stack-in-card
+            mode: horizontal
+            card_mod:
+              style: |
+                ha-card {
+                      margin-left: 0px!important;
+                      margin-right: 0px!important;
+                      margin-top: 0px!important;
+                      margin-bottom: -4px!important;
+                }
+            cards:
+              - type: gauge
+                entity: sensor.i_inst
+                needle: true
+                name: I
+                min: 0
+                max: 60
+                segments:
+                  - from: 0
+                    color: green
+                  - from: 15
+                    color: yellow
+                  - from: 30
+                    color: orange
+                  - from: 45
+                    color: red
+                card_mod:
+                  style: |
+                    ha-card > div.name {
+                      font-size: 0px;
+                    }
+                    mushroom-state-info {
+                          text-align: end !important;
+                    }
+                    ha-card {
+                      background: rgb(38,38,38) !important;
+                      border: none!important;
+                      border-radius: 5px !important;
+                      justify-content: center!important;
+                      margin-left: 2px!important; margin-right: 2px!important; margin-top: 2px!important; margin-bottom: 0px!important;
+                      --icon-size: 90px !important;
+                      --card-primary-font-size: 25px !important;
+                      --card-secondary-font-size: 15px !important;
+                    }
+                    mushroom-shape-icon {
+                      --shape-outline-color: none!important;
+                      --shape-color: rgb(38,38,38) !important;
+                      --shape-color-disabled: rgb(38,38,38) !important;
+                    }
+              - type: gauge
+                entity: input_number.voltage_maison
+                needle: true
+                name: V
+                min: 210
+                max: 260
+                segments:
+                  - from: null
+                    color: yellow
+                  - from: 220
+                    color: green
+                  - from: 250
+                    color: red
+                card_mod:
+                  style: |
+                    ha-card > div.name {
+                      font-size: 0px;
+                    }
+                    mushroom-state-info {
+                          text-align: end !important;
+                    }
+                    ha-card {
+                      background: rgb(38,38,38) !important;
+                      border: none!important;
+                      border-radius: 5px !important;
+                      justify-content: center!important;
+                      margin-left: 2px!important; margin-right: 4px!important; margin-top: 2px!important; margin-bottom: 0px!important;
+                      --icon-size: 90px !important;
+                      --card-primary-font-size: 25px !important;
+                      --card-secondary-font-size: 15px !important;
+                    }
+                    mushroom-shape-icon {
+                      --shape-outline-color: none!important;
+                      --shape-color: rgb(38,38,38) !important;
+                      --shape-color-disabled: rgb(38,38,38) !important;
+                    }
+          - type: custom:stack-in-card
+            mode: horizontal
+            card_mod:
+              style: |
+                ha-card {
+                      margin-left: 0px!important;
+                      margin-right: 0px!important;
+                      margin-top: 0px!important;
+                      margin-bottom: 0px!important;
+                }
+            cards:
+              - type: conditional
+                conditions:
+                  - entity: sensor.rte_tempo_couleur_actuelle
+                    state:
+                      - Bleu
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-p-box
+                  icon_color: white
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hp_jb_daily')|float(0)
+                    * 
+                      states('input_number.tarif_edf_tempo_bleu_hp')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: blue !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 4px!important; margin-right: 2px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: blue !important;
+                        --shape-color-disabled: blue !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: sensor.rte_tempo_couleur_actuelle
+                    state:
+                      - Blanc
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-p-box
+                  icon_color: black
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hp_jw_daily')|float(0)
+                    * 
+                        states('input_number.tarif_edf_tempo_blanc_hp')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: white !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 4px!important; margin-right: 2px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --card-primary-color: black !important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: white !important;
+                        --shape-color-disabled: white !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: sensor.rte_tempo_couleur_actuelle
+                    state:
+                      - Rouge
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-p-box
+                  icon_color: white
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hp_jr_daily')|float(0)
+                    * 
+                        states('input_number.tarif_edf_tempo_rouge_hp')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: red !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 4px!important; margin-right: 2px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --card-primary-color: black !important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: red !important;
+                        --shape-color-disabled: red !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: input_text.edt_tempo
+                    state:
+                      - Bleu
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-c-box
+                  icon_color: white
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hc_jb_daily')|float(0)
+                    * 
+                        states('input_number.tarif_edf_tempo_bleu_hc')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: blue !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 2px!important; margin-right: 4px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: blue !important;
+                        --shape-color-disabled: blue !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: input_text.edt_tempo
+                    state:
+                      - Blanc
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-c-box
+                  icon_color: black
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hc_jw_daily')|float(0)
+                    * 
+                        states('input_number.tarif_edf_tempo_blanc_hc')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: white !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 2px!important; margin-right: 4px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                        --card-primary-color: black !important;
+
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: white !important;
+                        --shape-color-disabled: white !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: input_text.edt_tempo
+                    state:
+                      - Rouge
+                card:
+                  type: custom:mushroom-template-card
+                  fill_container: true
+                  icon: mdi:alpha-c-box
+                  icon_color: white
+                  primary: >-
+                    {{(states('sensor.energy_total_usage_hc_jr_daily')|float(0)
+                    * 
+                        states('input_number.tarif_edf_tempo_rouge_hc')|float(0))|round(2)}}€
+                  card_mod:
+                    style: |
+                      mushroom-state-info {
+                            text-align: end !important;
+                      }
+                      ha-card {
+                        background: red !important;
+                        border: none!important;
+                        border-radius: 5px !important;
+                        justify-content: center!important;
+                        margin-left: 2px!important; margin-right: 4px!important; margin-top: 0px!important; margin-bottom: 2px!important;
+                        --card-primary-color: black !important;
+                        --icon-size: 60px !important;
+                        height: 60px !important;
+                        --card-primary-font-size: 20px !important;
+                        --card-secondary-font-size: 15px !important;
+                      }
+                      mushroom-shape-icon {
+                        --shape-outline-color: none!important;
+                        --shape-color: red !important;
+                        --shape-color-disabled: red !important;
+                      }
+  - type: custom:meteofrance-weather-card
+    entity: weather.soulangis
+    details: false
+    current: true
+    animated_icons: true
+    forecast: false
+    card_mod:
+      style: |
+        ha-card > ul > li {
+          background-size: 60% !important;
+          line-height: 2.5em !important;
+          align-self: start !important;
+        }
+        ha-card {
+          background: rgb(38,38,38) !important;
+          border: none!important;
+          border-radius: 5px !important;
+          justify-content: center!important;
+          margin-left: 4px!important; margin-right: 4px!important; margin-top: -2px!important; margin-bottom: 2px!important;
+          font-size: 10px !important;
+          height: 65px !important;
+        }
+        mushroom-shape-icon {
+          --shape-outline-color: none!important;
+          --shape-color: rgb(38,38,38) !important;
+          --shape-color-disabled: rgb(38,38,38) !important;
+        }
+  - type: conditional
+    conditions:
+      - entity: input_boolean.meteo
+        state: "on"
+    card:
+      type: custom:meteofrance-weather-card
+      entity: weather.soulangis
+      cloudCoverEntity: sensor.soulangis_cloud_cover
+      rainChanceEntity: sensor.soulangis_rain_chance
+      freezeChanceEntity: sensor.soulangis_freeze_chance
+      snowChanceEntity: sensor.soulangis_snow_chance
+      uvEntity: sensor.soulangis_uv
+      rainForecastEntity: sensor.soulangis_next_rain
+      alertEntity: sensor.18_weather_alert
+      details: true
+      current: false
+      animated_icons: true
+      forecast: true
+      one_hour_forecast: true
+      alert_forecast: true
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: template
+        entity: input_boolean.controle_maison_on_off
+        icon: mdi:home-switch-outline
+        content: controle
+        icon_color: |-
+          {% if is_state(entity, 'on') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: toggle
+      - type: template
+        entity: input_boolean.meteo
+        icon: mdi:weather-cloudy-clock
+        content: météo
+        icon_color: |-
+          {% if is_state(entity, 'on') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: toggle
+      - type: template
+        entity: alarm_control_panel.alarmo
+        icon: mdi:security
+        content: "{{states(entity)}} "
+        icon_color: |-
+          {% if is_state(entity, 'disarmed') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        icon: |-
+          {% if is_state('binary_sensor.porte', 'off') %}
+            mdi:door-closed
+          {% else %}
+            mdi:door-open
+          {% endif %}
+        icon_color: |-
+          {% if is_state('binary_sensor.porte', 'off') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        entity: binary_sensor.porte
+      - type: template
+        icon: |-
+          {% if is_state('binary_sensor.mouvement_maison', 'off') %}
+            mdi:motion-sensor-off
+          {% else %}
+            mdi:motion-sensor
+          {% endif %}
+        icon_color: |-
+          {% if is_state('binary_sensor.mouvement_maison', 'off') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        entity: binary_sensor.mouvement_maison
+      - type: template
+        icon: |-
+          {% if is_state('binary_sensor.smoke_detector', 'off') %}
+            mdi:smoke-detector-variant-off
+          {% else %}
+            mdi:smoke-detector-variant-alert
+          {% endif %}
+        icon_color: |-
+          {% if is_state('binary_sensor.smoke_detector', 'off') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        entity: binary_sensor.smoke_detector
+      - type: template
+        icon: |-
+          {% if is_state('binary_sensor.flood_detector', 'off') %}
+            mdi:water-off
+          {% else %}
+            mdi:water-on
+          {% endif %}
+        icon_color: |-
+          {% if is_state('binary_sensor.flood_detector', 'off') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+        entity: binary_sensor.flood_detector
+    alignment: end
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: template
+        entity: input_boolean.track
+        icon: mdi:cellphone-marker
+        icon_color: |-
+          {% if is_state(entity, 'on') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: toggle
+      - type: template
+        entity: person.admin
+        content: JB
+        layout: vertical
+        icon: mdi:face-man
+        icon_color: |-
+          {% if is_state(entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: person.kb
+        content: KB
+        layout: vertical
+        icon: mdi:face-woman
+        icon_color: |-
+          {% if is_state(entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: person.jade
+        content: Jade
+        layout: vertical
+        icon: mdi:face-woman
+        icon_color: |-
+          {% if is_state(entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: person.eb
+        content: Emy
+        layout: vertical
+        icon: mdi:face-woman
+        icon_color: |-
+          {% if is_state(entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+      - type: template
+        entity: person.mael
+        content: Mael
+        layout: vertical
+        icon: mdi:face-man
+        icon_color: |-
+          {% if is_state(entity, 'home') %}
+            green
+          {% else %}
+            red
+          {% endif %}
+        tap_action:
+          action: more-info
+  - type: conditional
+    conditions:
+      - entity: input_boolean.track
+        state: "on"
+    card:
+      type: map
+      entities:
+        - device_tracker.iphone_jb
+        - device_tracker.device_tracker_iphone_de_kathaleen
+        - device_tracker.iphone_jade
+        - device_tracker.iphone_eb
+      dark_mode: true
+  - type: conditional
+    conditions:
+      - entity: calendar.poubelles
+        state: "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:mushroom-light-card
+          secondary_info: none
+          entity: calendar.poubelles
+          icon: mdi:trash-can
+          layout: vertical
+          name: Poubelle Jaune
+          primary_info: name
+          icon_color: yellow
+          tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgb(38,38,38) !important;
+                border: none!important;
+                border-radius: 5px !important;
+                justify-content: center!important;
+                margin-left: 4px!important; margin-right: 2px!important; margin-top: 1px!important; margin-bottom: 2px!important;
+                --icon-size: 60px !important;
+              }
+              mushroom-shape-icon {
+                --shape-outline-color: none!important;
+                --shape-color: rgb(38,38,38) !important;
+                --shape-color-disabled: rgb(38,38,38) !important;
+              }
+        - type: custom:mushroom-light-card
+          secondary_info: none
+          entity: calendar.poubelles
+          icon: mdi:trash-can
+          layout: vertical
+          name: Poubelle Noir
+          icon_color: black
+          primary_info: name
+          tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                background: rgb(38,38,38) !important;
+                border: none!important;
+                border-radius: 5px !important;
+                justify-content: center!important;
+                margin-left: 2px!important; margin-right: 4px!important; margin-top: 1px!important; margin-bottom: 2px!important;
+                --icon-size: 60px !important;
+              }
+              mushroom-shape-icon {
+                --shape-outline-color: none!important;
+                --shape-color: rgb(38,38,38) !important;
+                --shape-color-disabled: rgb(38,38,38) !important;
+              }
+  - type: conditional
+    conditions:
+      - entity: input_boolean.controle_maison_on_off
+        state:
+          - "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Cuisine
+            - position: left
+            - entity: switch.pir_cuisine_on_off
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Salon bas
+            - position: center
+            - entity: switch.pir_salon_bas_on_off
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Garage
+            - position: center
+            - entity: switch.pir_garage_on_off
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Bureau
+            - position: right
+            - entity: switch.pir_bureau_on_off
+            - icon: motion-sensor
+  - type: conditional
+    conditions:
+      - entity: input_boolean.controle_maison_on_off
+        state:
+          - "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: SDB bas
+            - position: left
+            - entity: switch.pir_sdb_bas_on_off
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: SDB haut
+            - position: center
+            - entity: switch.pir_sdb_haut_on_off
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Devant
+            - position: center
+            - entity: switch.pir_devant_on_off_3
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Derriere
+            - position: right
+            - entity: switch.pir_derriere_on_off
+            - icon: motion-sensor
+  - type: conditional
+    conditions:
+      - entity: input_boolean.controle_maison_on_off
+        state:
+          - "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Telegram
+            - position: left
+            - entity: switch.activer_pir_telegram
+            - icon: motion-sensor
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Telegram
+            - position: center
+            - entity: switch.activer_door_telegram
+            - icon: door-open
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Telegram
+            - position: right
+            - entity: switch.telegram_lumieres
+            - icon: lightbulb
+  - type: conditional
+    conditions:
+      - entity: input_boolean.controle_maison_on_off
+        state:
+          - "on"
+    card:
+      type: custom:stack-in-card
+      mode: horizontal
+      cards:
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Camera Detection
+            - position: left
+            - entity: switch.camera_detection_on_off
+            - icon: cctv
+        - type: custom:decluttering-card
+          template: light_template
+          variables:
+            - name: Camera Contrast
+            - position: right
+            - entity: switch.devant_improve_contrast
+            - icon: contrast-box

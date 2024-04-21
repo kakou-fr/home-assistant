@@ -1,0 +1,21 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:mod-card
+    card_mod:
+      style: |
+        ha-card {
+          --ha-card-box-shadow:  none!important;
+        }
+    card:
+      type: custom:stack-in-card
+      mode: vertical
+      cards:
+        - !include /config/lovelace/card/card-chambre-filles.yaml
+        - !include /config/lovelace/card/card-chambre-mael.yaml
+        - !include /config/lovelace/card/card-sdb-bas.yaml
+        - !include /config/lovelace/card/card-wc-bas.yaml
+        - !include /config/lovelace/card/card-chambre-haut.yaml
+        - !include /config/lovelace/card/card-sdb-haut.yaml

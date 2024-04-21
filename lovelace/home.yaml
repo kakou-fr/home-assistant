@@ -1,0 +1,17 @@
+decluttering_templates: !include /config/lovelace/decluttering_templates/decluttering_templates.yaml
+
+title: Maison
+background: var(--background-image)
+views:
+  - title: Home-0
+    icon: mdi:home-floor-0
+    badges: []
+    type: custom:horizontal-layout
+    layout:
+      max_cols: 5
+    cards:
+      - !include /config/lovelace/tiles/tile-maison.yaml
+      - !include /config/lovelace/card/card-salon-bas.yaml
+      - !include /config/lovelace/tiles/tile-bureau-salonhaut.yaml
+      - !include /config/lovelace/tiles/tile-couloir-cuisine-garage.yaml
+      - !include /config/lovelace/tiles/tile-chambre-wc-sdb.yaml

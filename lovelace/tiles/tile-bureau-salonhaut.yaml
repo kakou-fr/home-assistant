@@ -1,0 +1,7 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - !include /config/lovelace/card/card-salon-haut.yaml
+  - !include /config/lovelace/card/card-bureau.yaml

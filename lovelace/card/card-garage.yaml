@@ -1,0 +1,150 @@
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  class: top-level-card
+cards:
+  - type: custom:decluttering-card
+    template: title_template
+    variables:
+      - name: Garage
+      - entity_action: light.lumiere_garage
+      - room: Garage
+      - icon: garage
+      - bg_color: "rgb(80,80,80)"
+  - type: custom:decluttering-card
+    template: chips_1_template
+    variables:
+      - entity_temperature: sensor.garage_th_temp
+      - entity_humidity: sensor.garage_th_hum
+      - room: "Garage"
+  - type: custom:decluttering-card
+    template: chips_2_template
+    variables:
+      - room: "Garage"
+      - entity_show_smoke: "input_boolean.boolean_true"
+      - entity_show_flood: "input_boolean.boolean_true"
+      - entity_show_door: "input_boolean.boolean_true"
+  - type: custom:mushroom-chips-card
+    card_mod:
+      style: |
+        ha-card {
+          --chip-box-shadow: none !important;
+          --chip-background: none !important;
+        }
+    chips:
+      - type: template
+        content: "{{ states(entity) | float(0) | round(0) }}°C"
+        entity: sensor.congelateur_th_temp
+        icon: mdi:fridge
+        icon_color: blue
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: uptime_card_template
+        variables:
+          - icon: server
+          - icon_ko: server-off
+          - entity: sensor.uptimekuma_192_168_4_4
+          - name: "HA"
+      - type: custom:decluttering-card
+        template: uptime_card_template
+        variables:
+          - icon: router-wireless
+          - icon_ko: router-wireless-off
+          - entity: sensor.uptimekuma_box_4g
+          - name: "4G"
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: button_template
+        variables:
+          - entity: light.lumiere_garage
+          - icon: ceiling-light
+          - position: left
+          - name: Garage
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Congélateur
+          - entity: switch.switch_congelateur
+          - entity_power: sensor.switch_congelateur_power
+          - position: center
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Entrée
+          - entity: switch.switch_garage_entree
+          - entity_power: sensor.switch_garage_entree_power
+          - position: right
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: UPS
+          - entity: switch.switch_onduleur_garage
+          - entity_power: sensor.switch_onduleur_garage_power
+          - position: left
+      - type: custom:decluttering-card
+        template: button_template
+        variables:
+          - name: GW
+          - entity: switch.switch_gateway_prise_1
+          - position: center
+      - type: custom:decluttering-card
+        template: button_template
+        variables:
+          - name: Frigate
+          - entity: switch.switch_frigate_prise_1
+          - position: right
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: HA
+          - entity: switch.switch_ha_prise_1
+          - entity_power: sensor.switch_ha_puissance
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Freebox
+          - entity: switch.switch_freebox_server
+          - entity_power: sensor.switch_freebox_server_power
+          - position: center
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Synology
+          - entity: switch.switch_synology
+          - entity_power: sensor.switch_synology_power
+          - position: right
+  - type: custom:stack-in-card
+    mode: horizontal
+    cards:
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: VMC
+          - entity: switch.switch_vmc
+          - entity_power: sensor.switch_vmc_power
+          - position: left
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Chauffe-Eau
+          - entity: switch.switch_chauffe_eau_l2
+          - entity_power: sensor.capteur_energie_2_watts_prise_5
+          - position: center
+      - type: custom:decluttering-card
+        template: switch_template
+        variables:
+          - name: Baie
+          - entity: switch.switch_garage_mur
+          - entity_power: sensor.switch_garage_mur_power
+          - position: right
