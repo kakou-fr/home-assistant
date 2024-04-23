@@ -1,0 +1,63 @@
+# Enable logging
+logger:
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_password
+
+ota:
+  password: !secret ota_password
+
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+    
+# Sync time with Home Assistant.
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+
+status_led:
+  pin:
+     number: $pin_led
+     inverted: TRUE
+
+web_server:
+    port: 80
+    auth:
+        username: admin
+        password: !secret web_server_password  
+
+binary_sensor:
+  - platform: status
+    name: "ESP32 Presence Sensor $number Status"
+
+sensor:
+  # Uptime sensor.
+  - platform: uptime
+    name: "ESP32 Presence Sensor $number Uptime"
+
+  # WiFi Signal sensor.
+  - platform: wifi_signal
+    name: "ESP32 Presence Sensor $number Signal"
+    update_interval: 60s
+    
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
+
+text_sensor:
+  - platform: version
+    name: "ESPHome Version ESP32 Presence Sensor $number"
+  - platform: wifi_info
+    ip_address:
+      name: "ESP IP Address ESP32 Presence Sensor $number"
+    ssid:
+      name: "ESP Connected SSID ESP32 Presence Sensor $number"
+    bssid:
+      name: "ESP Connected BSSID ESP32 Presence Sensor $number"

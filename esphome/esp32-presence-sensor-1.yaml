@@ -1,0 +1,24 @@
+substitutions:
+  project: "esp32-presence-sensor"
+  number: "1"
+  board: "wemos_d1_mini32"
+  framework: "arduino"
+  pin_led: "GPIO15"
+  ld2410_tx_pin: "GPIO1"
+  ld2410_rx_pin: "GPIO3"
+
+esphome:
+  name: $project-$number
+  friendly_name: $project-$number
+
+esp32:
+#  board: esp32dev
+  board: $board
+  framework:
+    type: $framework
+
+packages:
+  common: !include include/common-config.yaml
+  ld2410: !include include/ld2410.yaml
+  bh1750: !include include/bh1750.yaml
+
