@@ -1,0 +1,2017 @@
+substitutions:
+  name: "esp32-touch-28-1"
+  friendly_name: "esp32-touch-28-1"
+  device_description: "ESP32-2432s028 2.8 Smart Screen"
+  project_name: "ESP32-2432s028"
+  project_version: "0.0.1"
+
+  lightbulb:     "\U000F0335"
+  ceiling_light: "\U000F0769"
+  lamp:          "\U000F06B5"
+  floor_lamp:    "\U000F08DD"
+  string_lights: "\U000F12BA"
+  wall_sconce:   "\U000F091C"
+
+  icon_tv:    "\U000F0502"
+  icon_power: "\U000F0425"
+  icon_home:  "\U000F13B1"
+
+  icon_volume_down:   "\U000F075E"
+  icon_volume_up:     "\U000F075D"
+  icon_volume_mute:   "\U000F075F"
+  icon_menu_left:     "\U000F035E"
+  icon_menu_right:    "\U000F035F"
+  icon_menu_down:     "\U000F035D"
+  icon_menu_up:       "\U000F0360"
+  icon_channel_up:    "\U000F06B7"
+  icon_channel_down:  "\U000F06B6"
+  icon_menu_ok:       "\U000F0E1E"
+  
+
+
+  icon_font_light: light30
+  icon_font_light_double: light60
+  text_font: roboto24
+  button_on_color: "Dark_Orange"
+  icon_on_color: "Yellow"
+  button_off_color: "Very_Dark_Gray"
+  icon_off_color: "White"
+  button_text_color: "White"
+
+  header_footer_height_size: '30px'
+  header_footer_width_size: '240px'
+  page_height_size: '260px'
+  page_width_size: '100%'
+  button_height_single: '59px'
+  button_height_double: '118px'
+  button_width_single: '110px'
+  button_width_double: '220px'
+  meter_width_size: '200px'
+
+  freebox_button_width: '75px' 
+  freebox_button_height: '60'
+
+  button_tv_name: "TV"
+  button_tv_id: local_tv
+  button_tv_icon: $icon_tv
+
+  button_1_name: "Table"
+  button_1_id: local_light1
+  button_1_icon: $ceiling_light
+
+  button_2_name: "Salon"
+  button_2_id: local_light2
+  button_2_icon: $ceiling_light
+
+  button_3_name: "Coin TV"
+  button_3_id: local_light3
+  button_3_icon: $wall_sconce
+
+  button_4_name: "Coin repas"
+  button_4_id: local_light4
+  button_4_icon: $floor_lamp
+
+  remote_tv: remote.tv_salon
+  remote_tv_android: remote.freebox_tv
+  remote_light1: light.lumiere_salon_left
+  remote_light2: light.lumiere_salon_right
+  remote_light3: light.lumiere_coin_tv
+  remote_light4: light.petite_lumiere_salon
+
+  sensor_temp: sensor.salon_bas_th_temperature
+  sensor_hum: sensor.salon_bas_th_humidity
+  sensor_puissance: sensor.puissanceapparente
+  outdoor_temperature: sensor.exterieur_devant_th_temperature
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32doit-devkit-v1 #esp32dev
+  framework:
+    type: arduino
+    version: latest
+  flash_size: 8MB    
+  
+# Enable logging
+logger:
+  level: info
+  logs:
+    touchscreen: info
+    scheduler: none
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_password
+  on_client_connected:
+    - if:
+        condition:
+          lambda: 'return (0 == client_info.find("Home Assistant "));'
+        then:
+          - lvgl.widget.show: lbl_hastatus
+          - lvgl.widget.hide: boot_screen
+          
+  on_client_disconnected:
+    - if:
+        condition:
+          lambda: 'return (0 == client_info.find("Home Assistant "));'
+        then:
+          - lvgl.widget.hide: lbl_hastatus
+          - lvgl.widget.show: boot_screen
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+captive_portal:
+
+# Enable Web server.
+web_server:
+  port: 80
+  auth:
+      username: admin
+      password: !secret web_server_password  
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "ESP32-2432s028"
+    password: !secret ap_password
+  
+
+spi:
+  - id: lcd
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
+  - id: touch
+    clk_pin: GPIO25
+    mosi_pin: GPIO32
+    miso_pin: GPIO39
+
+i2c:
+  sda: GPIO27
+  scl: GPIO22
+  scan: true
+  id: bus_a
+
+# Define pins for backlight display and back LED1
+output:
+  - platform: ledc
+    pin: GPIO21
+    id: former_led_pin
+  - platform: ledc
+    id: output_red
+    pin: GPIO4
+    inverted: true
+  - platform: ledc
+    id: output_green
+    pin: GPIO16
+    inverted: true
+  - platform: ledc
+    id: output_blue
+    pin: GPIO17
+    inverted: true
+
+# Define a monochromatic, dimmable light for the backlight
+light:
+  - platform: monochromatic
+    output: former_led_pin
+    name: "Display Backlight"
+    id: display_backlight
+    restore_mode: ALWAYS_ON
+  - platform: rgb
+    name: LED
+    red: output_red
+    id: led
+    green: output_green
+    blue: output_blue
+    restore_mode: ALWAYS_OFF
+
+display:
+  - platform: ili9xxx
+    model: st7789v
+    spi_id: lcd
+    cs_pin: 15
+    dc_pin: 2
+    #dimensions: 240×320
+    reset_pin: 3
+    #rotation: 90
+    spi_mode: mode3
+    data_rate: 2000000.0
+    invert_colors: false
+    auto_clear_enabled: false
+    update_interval: never
+    dimensions:
+        width: 240
+        height: 320
+
+touchscreen:
+  platform: xpt2046
+  spi_id: touch
+  cs_pin: 33
+  interrupt_pin: 36
+  update_interval: 50ms
+  threshold: 400
+  calibration:
+    x_min: 3800
+    x_max: 400
+    y_min: 300
+    y_max: 3750
+  on_touch:
+    - logger.log:
+          format: Touch at (%d, %d)
+          args: [touch.x, touch.y]
+    - lambda: |-
+          ESP_LOGI("cal", "x=%d, y=%d, x_raw=%d, y_raw=%0d",
+              touch.x,
+              touch.y,
+              touch.x_raw,
+              touch.y_raw
+              );
+    - if:
+        condition: lvgl.is_paused
+        then:
+          - logger.log: "LVGL resuming"
+          - lvgl.resume:
+          - lvgl.widget.redraw:
+          - light.turn_on: display_backlight
+  on_release:
+    then:
+      - if:
+          condition: lvgl.is_paused
+          then:
+            - lvgl.resume:
+            - lvgl.widget.redraw:
+
+# Exposed switches.
+switch:
+  - platform: restart
+    name: ESP32-2432S028 Restart
+  - platform: template
+    name: Antiburn
+    id: switch_antiburn
+    icon: mdi:television-shimmer
+    optimistic: true
+    entity_category: "config"
+    turn_on_action:
+      - logger.log: "Starting Antiburn"
+      - if:
+          condition: lvgl.is_paused
+          then:
+            - lvgl.resume:
+            - lvgl.widget.redraw:
+            - delay: 1s
+      - lvgl.pause:
+          show_snow: true
+    turn_off_action:
+      - logger.log: "Stopping Antiburn"
+      - if:
+          condition: lvgl.is_paused
+          then:
+            - lvgl.resume:
+            - lvgl.widget.redraw:
+            - delay: 1s
+            - lvgl.pause:
+
+text:
+  - platform: lvgl
+    name: fr_cond_icon
+    widget: lbl_weather_forecast_condition_icon
+    mode: text
+  - platform: lvgl
+    name: fr_cond_name
+    widget: lbl_weather_forecast_condition_name
+    mode: text
+  - platform: lvgl
+    name: fr_tempap
+    widget: lbl_weather_forecast_tempap
+    mode: text
+  - platform: lvgl
+    name: fr_temphi
+    widget: lbl_weather_forecast_temphi
+    mode: text
+  - platform: lvgl
+    name: fr_templo
+    widget: lbl_weather_forecast_templo
+    mode: text
+  - platform: lvgl
+    name: wd_out_now
+    widget: lbl_weather_outdnoor_now
+    mode: text
+
+time:
+  - platform: sntp
+    id: sntp_time
+    update_interval: 360min   # Change sync interval from default 5min to 6 hours
+    on_time_sync:
+      - if:
+          condition:
+            lambda: 'return id(device_last_restart).state == "";'
+          then:
+            - text_sensor.template.publish:
+                id: device_last_restart
+                state: !lambda 'return id(sntp_time).now().strftime("%a %d %b %Y - %I:%M:%S %p");'
+  - platform: homeassistant
+    id: time_comp
+    on_time_sync:
+      - script.execute: time_update
+    on_time:
+      - minutes: '*'
+        seconds: 0
+        then:
+          - script.execute: time_update
+  - platform: homeassistant
+    on_time:
+      - hours: 2,3,4,5
+        minutes: 5
+        seconds: 0
+        then:
+          - switch.turn_on: switch_antiburn
+      - hours: 2,3,4,5
+        minutes: 35
+        seconds: 0
+        then:
+          - switch.turn_off: switch_antiburn
+
+script:
+  - id: time_update
+    then:
+      - lvgl.indicator.update:
+          id: minute_hand
+          value: !lambda |-
+            return id(time_comp).now().minute;
+      - lvgl.indicator.update:
+          id: hour_hand
+          value: !lambda |-
+            auto now = id(time_comp).now();
+            return std::fmod(now.hour, 12) * 60 + now.minute;
+      - lvgl.label.update:
+          id: date_label
+          text: !lambda |-
+            static const char * const mon_names[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+            static char date_buf[8];
+            auto now = id(time_comp).now();
+            snprintf(date_buf, sizeof(date_buf), "%s %2d", mon_names[now.month-1], now.day_of_month);
+            return date_buf;
+      - lvgl.label.update:
+          id: day_label
+          text: !lambda |-
+            static const char * const day_names[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+            return day_names[id(time_comp).now().day_of_week - 1];
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+    internal: true
+
+  # Reports the WiFi signal strength in %
+  - platform: copy
+    id: wifi_signal_percent
+    source_id: wifi_signal_db
+    name: "WiFi Strength"
+    filters:
+      - lambda: |-
+          float value = min(max(2 * (x + 100.0), 0.0), 100.0);
+          ESP_LOGI("wifi", "Signal strength: %.1f%%", value);
+          return value;
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: wifi_signal_db_percent_label
+            text:
+              format: "WiFi Strength: %.1f%%"
+              args: [ 'id(wifi_signal_percent).state' ]
+        - lvgl.label.update:
+            id: lbl_hastatus
+            text:
+              format: "%.1f%% \uF1EB"
+              args: [ 'id(wifi_signal_percent).state' ]
+  - platform: homeassistant
+    entity_id: $sensor_temp
+    id: current_temperature
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: current_temphum_label
+            text:
+              format: "%.1f%° / %.1f%%"
+              args: [ 'id(current_temperature).state','id(current_humidity).state' ]
+  - platform: homeassistant
+    entity_id: $sensor_hum
+    id: current_humidity
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: current_temphum_label
+            text:
+              format: "%.1f%° / %.1f%%"
+              args: [ 'id(current_temperature).state','id(current_humidity).state' ]
+  - platform: homeassistant
+    entity_id: $sensor_puissance
+    id: current_puissance
+    on_value:
+      - lvgl.indicator.update:
+          id: puissance
+          value: !lambda return x;
+      - lvgl.label.update:
+          id: puissance_value
+          text:
+            format: "%.0f%"
+            args: [ 'id(current_puissance).state' ]
+  - platform: homeassistant
+    id: outdoor_temperature
+    entity_id: $outdoor_temperature
+    on_value:
+      - lvgl.indicator.update:
+          id: temperature_needle
+          value: !lambda return x * 10;
+      - lvgl.label.update:
+          id: temperature_text
+          text:
+            format: "%.1f°C"
+            args: [ 'x' ]
+
+
+text_sensor:
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: weather_now_condition
+    internal: true
+
+  - platform: version
+    id: esphome_version
+    name: "ESPHome Version"
+    hide_timestamp: true
+
+  - platform: wifi_info
+    ip_address:
+      id: ip_address
+      name: "IP Address"
+      entity_category: diagnostic
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: ip_address_label
+              text:
+                format: "IP Address: %s"
+                args: [ 'id(ip_address).state.c_str()' ]
+    ssid:
+      id: connected_ssid
+      name: "Connected SSID"
+      entity_category: diagnostic
+      on_value:
+        then:
+          - lvgl.label.update:
+              id: connected_ssid_label
+              text:
+                format: "Connected SSID: %s"
+                args: [ 'id(connected_ssid).state.c_str()' ]
+
+  - platform: template
+    name: 'Last Restart'
+    id: device_last_restart
+    icon: mdi:clock
+    entity_category: diagnostic
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+    entity_category: diagnostic
+  - platform: homeassistant
+    id: remote_tv
+    entity_id: $remote_tv
+    publish_initial_state: true
+    on_state:
+      then:
+        lvgl.widget.update:
+          id: lv_button_tv
+          state:
+            checked: !lambda return x;
+  - platform: homeassistant
+    id: remote_light1
+    entity_id: $remote_light1
+    publish_initial_state: true
+    on_state:
+      then:
+        lvgl.widget.update:
+          id: lv_button_1
+          state:
+            checked: !lambda return x;
+  - platform: homeassistant
+    id: remote_light2
+    entity_id: $remote_light2
+    publish_initial_state: true
+    on_state:
+      then:
+        lvgl.widget.update:
+          id: lv_button_2
+          state:
+            checked: !lambda return x;
+  - platform: homeassistant
+    id: remote_light3
+    entity_id: $remote_light3
+    publish_initial_state: true
+    on_state:
+      then:
+        lvgl.widget.update:
+          id: lv_button_3
+          state:
+            checked: !lambda return x;
+  - platform: homeassistant
+    id: remote_light4
+    entity_id: $remote_light4
+    publish_initial_state: true
+    on_state:
+      then:
+        lvgl.widget.update:
+          id: lv_button_4
+          state:
+            checked: !lambda return x;
+
+
+#-------------------------------------------
+# LVGL Buttons
+#-------------------------------------------
+lvgl:
+  buffer_size: 25%
+  on_idle:
+    - timeout: 10s
+      then:
+        - logger.log: idle timeout
+        - if:
+            condition:
+              lvgl.is_idle:
+                timeout: 5s
+            then:
+              - logger.log: LVGL is idle
+    - timeout: 15s
+      then:
+        - logger.log: idle 15s timeout
+        - lvgl.pause:
+        - light.turn_off:
+            id: display_backlight
+            transition_length: 5s    
+
+  style_definitions:
+    - id: no_checked_color
+      bg_color: 0xCC5E14
+      text_color: 0xB6B6B6
+    - id: header_footer
+      bg_color: 0x2F8CD8
+      bg_grad_color: 0x005782
+      bg_grad_dir: VER
+      bg_opa: COVER
+      border_opa: TRANSP
+      radius: 0
+      pad_all: 0
+      pad_row: 0
+      pad_column: 0
+      border_color: 0x0077b3
+      text_color: 0xFFFFFF
+      width: $header_footer_width_size
+      height: $header_footer_height_size
+    - id: block_center
+      radius: 0
+      pad_all: 0
+      pad_top: 4
+      pad_left: 6
+      border_width: 0
+      width: $page_width_size
+      height: $page_height_size
+      bg_color: Black
+      bg_opa: cover
+      
+  theme:
+    button:
+      text_font: roboto12
+      scroll_on_focus: true
+      #radius: 15px
+      width: $button_width_single
+      height: $button_height_single
+      pad_all: 4
+      shadow_width: 0 # This is required even though the default is suposed to be 0
+      bg_color: 0x313131
+      text_color: 0xB6B6B6
+      checked:
+        bg_color: 0xCC5E14
+        text_color: 0xB6B6B6
+
+  page_wrap: true
+
+  top_layer:
+    scrollbar_mode: 'off'
+    widgets:
+      #header bar
+      - obj:
+          align: TOP_MID
+          styles: header_footer
+          widgets:
+            - label:
+                id: current_temphum_label
+                align: LEFT_MID
+                text_align: CENTER
+                text_color: 0xFFFFFF
+                text_font: roboto12
+            - label:
+                id: header_text_label
+                text: "Salon"
+                align: CENTER
+                text_align: CENTER
+                text_color: 0xFFFFFF
+            - label:
+                text: "\uF1EB"
+                id: lbl_hastatus
+                hidden: true
+                align: RIGHT_MID
+                text_align: CENTER
+                text_color: 0xFFFFFF
+      # footer button
+      - buttonmatrix:
+          align: bottom_mid
+          styles: header_footer
+          pad_all: 0
+          outline_width: 0
+          id: top_layer
+          items:
+            styles: header_footer
+          rows:
+            - buttons:
+              - id: page_prev
+                text: "\uF053"
+                on_press:
+                  then:
+                    lvgl.page.previous:
+              - id: page_home
+                text: "\uF015"
+                on_press:
+                  then:
+                    lvgl.page.show: main_page
+              - id: page_next
+                text: "\uF054"
+                on_press:
+                  then:
+                    lvgl.page.next:
+
+      - obj:
+          id: boot_screen
+          layout:
+            type: flex
+            flex_flow: COLUMN_WRAP
+          width: 240px
+          height: 320px
+          text_font: roboto12
+          scrollbar_mode: 'off'
+          bg_color: 0xffffff
+          bg_opa: COVER
+          radius: 0
+          pad_all: 5
+          widgets:
+            - image:
+                src: boot_logo
+                antialias: true
+                pad_bottom: 10
+            - label:
+                id: ip_address_label
+                text: "IP Address:"
+            - label:
+                id: connected_ssid_label
+                text: "Connected SSID:"
+            - label:
+                id: wifi_signal_db_percent_label
+                text: "WiFi Strength: 0%"
+            - label:
+                text:
+                  format: "ESPHome Version: %s"
+                  args: [ 'id(esphome_version).state.c_str()' ]
+            - obj:
+               radius: 0
+               pad_all: 0
+               border_width: 0
+               width: 100px
+               flex_grow: 1
+               widgets:
+                 - button:
+                    align: bottom_right
+                    radius: 15
+                    width: 100
+                    height: 60
+                    checkable: true
+                    widgets:
+                     - label:
+                         text_color: 0xffffff
+                         align: center
+                         text: "OK"
+                    on_press:
+                     - lvgl.widget.hide: boot_screen
+
+  pages:
+    - id: main_page
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: Black
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - obj:
+            layout:
+              type: flex
+              flex_flow: ROW_WRAP
+            styles: block_center
+            widgets:
+              - obj:
+                  height: $button_height_single
+                  width:  $button_width_single
+                  align: CENTER
+                  bg_color: 0x313131
+                  border_width: 0
+                  pad_all: 4
+                  widgets:
+                    - meter:
+                        height: 100%
+                        width: 100%
+                        border_width: 0
+                        bg_opa: TRANSP
+                        align: BOTTOM_MID
+                        scales:
+                          - range_from: 0
+                            range_to: 10000
+                            angle_range: 180 # sets the total angle to 180 = starts mid left and ends mid right
+                            ticks:
+                              count: 0
+                            indicators:
+                              - line:
+                                  id: puissance
+                                  width: 3
+                                  r_mod: 6 # sets line length by this much difference from the scale default radius
+                                  value: 0
+                              - arc: # first half of the scale background
+                                  color: "Green"
+                                  r_mod: 10 # radius difference from the scale default radius
+                                  width: 15
+                                  start_value: 0
+                                  end_value: 3333
+                              - arc: # second half of the scale background
+                                  color: "Yellow"
+                                  r_mod: 10
+                                  width: 15
+                                  start_value: 3333
+                                  end_value: 6666
+                              - arc: # second half of the scale background
+                                  color: "Red"
+                                  r_mod: 10
+                                  width: 15
+                                  start_value: 6666
+                                  end_value: 10000
+                    - label:
+                        id: puissance_value
+                        align: BOTTOM_MID
+                        text_align: CENTER
+                        text_color: "White"
+                        text_font: roboto16
+                        text: "0"
+
+              - button:
+                  height: $button_height_single
+                  checkable: true
+                  id: lv_button_tv
+                  widgets:
+                    - label:
+                        text_font: $icon_font_light
+                        align: top_mid
+                        text: $button_tv_icon
+                        id: lv_button_tv_icon
+                    - label:
+                        align: bottom_mid
+                        text: $button_tv_name
+                  on_short_click:
+                    - homeassistant.service:
+                        service: toggle
+                        data:
+                          entity_id: $remote_tv
+              - button:
+                  height: $button_height_double
+                  checkable: true
+                  id: lv_button_1
+                  widgets:
+                    - label:
+                        text_font: $icon_font_light_double
+                        align: top_mid
+                        text: $button_1_icon
+                        id: lv_button_1_icon
+                    - label:
+                        align: bottom_mid
+                        text: $button_1_name
+                  on_short_click:
+                    - homeassistant.service:
+                        service: light.toggle
+                        data:
+                          entity_id: $remote_light1
+              - button:
+                  height: $button_height_double
+                  checkable: true
+                  id: lv_button_2
+                  widgets:
+                    - label:
+                        text_font: $icon_font_light_double
+                        align: top_mid
+                        text: $button_2_icon
+                        id: lv_button_2_icon
+                    - label:
+                        align: bottom_mid
+                        text: $button_2_name
+                  on_short_click:
+                    - homeassistant.service:
+                        service: light.toggle
+                        data:
+                          entity_id: $remote_light2
+              - button:
+                  height: $button_height_single
+                  checkable: true
+                  id: lv_button_3
+                  widgets:
+                    - label:
+                        text_font: $icon_font_light
+                        align: top_mid
+                        text: $button_3_icon
+                        id: lv_button_3_icon
+                    - label:
+                        align: bottom_mid
+                        text: $button_3_name
+                  on_short_click:
+                    - homeassistant.service:
+                        service: light.toggle
+                        data:
+                          entity_id: $remote_light3
+              - button:
+                  height: $button_height_single
+                  checkable: true
+                  id: lv_button_4
+                  widgets:
+                    - label:
+                        text_font: $icon_font_light
+                        align: top_mid
+                        text: $button_4_icon
+                        id: lv_button_4_icon
+                    - label:
+                        align: bottom_mid
+                        text: $button_4_name
+                  on_short_click:
+                    - homeassistant.service:
+                        service: light.toggle
+                        data:
+                          entity_id: $remote_light4
+
+    - id: freebox_page
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: Black
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - buttonmatrix:
+            x: $freebox_button_width
+            y: $freebox_button_height
+            width: $page_width_size
+            height: $page_height_size
+            bg_color: "Black"
+            border_width: 0
+            text_font: roboto16
+            items:
+              bg_color: "Grey"
+              text_font: roboto16
+              pressed:
+                bg_color: 0xFFFF00
+            rows:
+              - buttons:
+                  - text: $icon_volume_up
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "VOLUME_UP"
+                  - text: $icon_menu_up
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "DPAD_UP"
+                  - text: $icon_channel_up
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "CHANNEL_UP"
+              - buttons:
+                  - text: $icon_menu_left
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "DPAD_LEFT"
+                  - text: $icon_menu_ok
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "DPAD_CENTER"
+                  - text: $icon_menu_right
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "DPAD_RIGHT"
+              - buttons:
+                  - text: $icon_volume_down
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "VOLUME_DOWN"
+                  - text: $icon_menu_down
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "DPAD_DOWN"
+                  - text: $icon_channel_down
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "CHANNEL_DOWN"
+              - buttons:
+                  - text: "Netflix"
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.turn_on
+                            data:
+                              entity_id: $remote_tv_android
+                              activity: "com.netflix.ninja"
+                  - text: "Disney+"
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.turn_on
+                            data:
+                              entity_id: $remote_tv_android
+                              activity: "com.disney.disneyplus"
+                  - text: "Prime"
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.turn_on
+                            data:
+                              entity_id: $remote_tv_android
+                              activity: "com.amazon.amazonvideo.livingroom"
+
+    - id: freebox_page2
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: Black
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - buttonmatrix:
+            x: $freebox_button_width
+            y: $freebox_button_height
+            width: $page_width_size
+            height: $page_height_size
+            bg_color: "Black"
+            border_width: 0
+            text_font: roboto16
+            items:
+              bg_color: "Grey"
+              text_font: roboto16
+              pressed:
+                bg_color: 0xFFFF00
+            rows:
+              - buttons:
+                  - text: 1
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "1"
+                  - text: 2
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "2"
+                  - text: 3
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "3"
+              - buttons:
+                  - text: 4
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "4"
+                  - text: 5
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "5"
+                  - text: 6
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "6"
+              - buttons:
+                  - text: 7
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "7"
+                  - text: 8
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "8"
+                  - text: 9
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "9"
+              - buttons:
+                  - text: $icon_power
+                    key_code: "P"
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "POWER"
+                  - text: 0
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "0"
+                  - text: $icon_home
+                    key_code: "H"
+                    on_press:
+                      then:
+                        - homeassistant.service:
+                            service: remote.send_command
+                            data:
+                              entity_id: $remote_tv_android
+                              command: "HOME"
+
+    - id: meter_page
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: Black
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - obj:
+            align: CENTER
+            styles: block_center
+            widgets:  
+              - meter:
+                  align: CENTER
+                  scrollbar_mode: 'off'
+                  width: $meter_width_size
+                  height: $meter_width_size
+                  bg_color: "White"
+                  bg_opa: cover
+                  pad_all: 0
+                  scales:
+                    - range_from: -100 # scale for the needle value
+                      range_to: 400
+                      angle_range: 240
+                      rotation: 150
+                      indicators:
+                        - line:
+                            id: temperature_needle
+                            width: 2
+                            color: 0xFF0000
+                            r_mod: -4
+                        - tick_style:
+                            start_value: -10
+                            end_value: 40
+                            color_start: 0x0000bd
+                            color_end: 0xbd0000
+                            width: 1
+                    - range_from: -10 # scale for the value labels
+                      range_to: 40
+                      angle_range: 240
+                      rotation: 150
+                      ticks:
+                        width: 1
+                        count: 51
+                        length: 10
+                        color: 0x000000
+                        major:
+                          stride: 5
+                          width: 2
+                          length: 10
+                          color: 0x404040
+                          label_gap: 10
+                  widgets:
+                    - label:
+                        id: temperature_text
+                        text: "-.-°C"
+                        align: CENTER
+                        y: 45
+                    - label:
+                        text: "Exterieur"
+                        align: CENTER
+                        y: 65
+
+    - id: clock_page
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: "Black"
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - obj:
+            align: CENTER
+            styles: block_center
+            widgets:  
+              - obj: # clock container
+                  height: SIZE_CONTENT
+                  width: $page_width_size
+                  align: CENTER
+                  pad_all: 0
+                  border_width: 0
+                  bg_color: "Black"
+                  widgets:
+                    - meter: # clock face
+                        height: 220
+                        width: 220
+                        align: CENTER
+                        bg_opa: TRANSP
+                        border_width: 0
+                        text_color: "White" # chiffre des heures
+                        scales:
+                          - range_from: 0 # minutes scale
+                            range_to: 60
+                            angle_range: 360
+                            rotation: 270
+                            ticks:
+                              width: 1
+                              count: 61
+                              length: 10
+                              color: "Gray" # petit tiret minutes
+                            indicators:
+                              - line:
+                                  id: minute_hand
+                                  width: 3
+                                  color: "Red" # aiguille minute
+                                  r_mod: -4
+                                  value: 0
+                          - range_from: 1 # hours scale for labels
+                            range_to: 12
+                            angle_range: 330
+                            rotation: 300
+                            ticks:
+                              width: 1
+                              count: 12
+                              length: 1
+                              major:
+                                stride: 1
+                                width: 4
+                                length: 10
+                                color: 0xC0C0C0
+                                label_gap: 12
+                          - range_from: 0 # hi-res hours scale for hand
+                            range_to: 720
+                            angle_range: 360
+                            rotation: 270
+                            ticks:
+                              count: 0
+                            indicators:
+                              - line:
+                                  id: hour_hand
+                                  width: 5
+                                  color: "Red" # aiguille heure
+                                  r_mod: -30
+                                  value: 0
+                    - label:
+                        id: day_label
+                        y: -30
+                        align: CENTER
+                        text_color: "Blue"
+                    - label:
+                        id: date_label
+                        y: 30
+                        align: CENTER
+                        text_color: "Blue"
+
+    - id: weather_forecast
+      layout:
+        type: flex
+        flex_flow: COLUMN
+        pad_column: 0
+        pad_row: 0
+      scrollbar_mode: 'off'
+      width: $page_width_size
+      bg_color: "Black"
+      bg_opa: cover
+      pad_all: 0
+      widgets:
+        #header
+        - obj:
+            align: TOP_MID
+            styles: header_footer
+        - obj:
+            align: CENTER
+            styles: block_center
+            widgets:  
+              - obj:
+                  align: CENTER
+                  width: 228
+                  height: 250
+                  pad_all: 10
+                  bg_color: "Black"
+                  text_color: "White"
+                  layout:
+                    type: GRID
+                    grid_rows: [FR(48), FR(13), FR(13), FR(13), FR(13)]
+                    grid_columns: [FR(10), FR(40), FR(40), FR(10)]
+                  widgets:
+                    - label:
+                        text: "\U000F14E4"
+                        id: lbl_weather_forecast_condition_icon
+                        text_font: icons_100
+                        text_align: CENTER
+                        grid_cell_row_pos: 0
+                        grid_cell_column_pos: 0
+                        grid_cell_column_span: 2
+                        grid_cell_x_align: CENTER
+                        grid_cell_y_align: START
+
+                    - label:
+                        text: "Unknown"
+                        id: lbl_weather_forecast_condition_name
+                        text_align: CENTER
+                        grid_cell_row_pos: 0
+                        grid_cell_column_pos: 2
+                        grid_cell_column_span: 2
+                        grid_cell_x_align: STRETCH
+                        grid_cell_y_align: CENTER
+
+                    - label:
+                        text: "Feels like:"
+                        grid_cell_row_pos: 1
+                        grid_cell_column_pos: 1
+
+                    - label:
+                        text: "--.- °C"
+                        id: lbl_weather_forecast_tempap
+                        text_align: RIGHT
+                        grid_cell_row_pos: 1
+                        grid_cell_column_pos: 2
+                        grid_cell_x_align: STRETCH
+
+                    - label:
+                        text: "Maximum:"
+                        grid_cell_row_pos: 2
+                        grid_cell_column_pos: 1
+
+                    - label:
+                        text: "--.- °C"
+                        id: lbl_weather_forecast_temphi
+                        text_align: RIGHT
+                        grid_cell_row_pos: 2
+                        grid_cell_column_pos: 2
+                        grid_cell_x_align: STRETCH
+
+                    - label:
+                        text: "Minimum:"
+                        grid_cell_row_pos: 3
+                        grid_cell_column_pos: 1
+
+                    - label:
+                        text: "--.- °C"
+                        id: lbl_weather_forecast_templo
+                        text_align: RIGHT
+                        grid_cell_row_pos: 3
+                        grid_cell_column_pos: 2
+                        grid_cell_x_align: STRETCH
+
+                    - label:
+                        text: "Now:"
+                        grid_cell_row_pos: 4
+                        grid_cell_column_pos: 1
+
+                    - label:
+                        text: "--.- °C"
+                        id: lbl_weather_outdnoor_now
+                        text_align: RIGHT
+                        grid_cell_row_pos: 4
+                        grid_cell_column_pos: 2
+                        grid_cell_x_align: STRETCH
+
+
+
+#-------------------------------------------
+# Graphics and Fonts
+#-------------------------------------------
+image:
+  - file: https://esphome.io/_static/logo-text-on-light.svg
+    id: boot_logo
+    resize: 200x90
+    type: RGB565
+    use_transparency: true
+
+font:
+  - file: "gfonts://Roboto"
+    id: roboto24
+    size: 24
+    bpp: 4
+    extras:
+      # http://materialdesignicons.com/cdn/7.4.47/
+      - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U0000f0ed",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F0156",
+          "\U000F0C5F",
+          "\U000f0084",
+          "\U000f0091",
+          "$icon_tv",
+          "$icon_power",
+          "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+        ]
+  - file: "gfonts://Roboto"
+    id: roboto20
+    size: 20
+    bpp: 4
+    extras:
+      # http://materialdesignicons.com/cdn/7.4.47/
+      - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U0000f0ed",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F0156",
+          "\U000F0C5F",
+          "\U000f0084",
+          "\U000f0091",
+          "$icon_tv",
+          "$icon_power",
+          "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+        ]
+  - file: "gfonts://Roboto"
+    id: roboto16
+    size: 16
+    bpp: 4
+    extras:
+      # http://materialdesignicons.com/cdn/7.4.47/
+      - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U0000f0ed",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F0156",
+          "\U000F0C5F",
+          "\U000f0084",
+          "\U000f0091",
+          "$icon_tv",
+          "$icon_power",
+          "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+        ]
+  - file: "gfonts://Roboto"
+    id: roboto12
+    size: 12
+    bpp: 4
+    extras:
+      # http://materialdesignicons.com/cdn/7.4.47/
+      - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U0000f0ed",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F0156",
+          "\U000F0C5F",
+          "\U000f0084",
+          "\U000f0091",
+          "$icon_tv",
+          "$icon_power",
+          "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+        ]
+
+  - file: "gfonts://Roboto"
+    id: roboto10
+    size: 10
+    bpp: 4
+    extras:
+      # http://materialdesignicons.com/cdn/7.4.47/
+      - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+        glyphs: [
+          "\U000F004B",
+          "\U0000f0ed",
+          "\U000F006E",
+          "\U000F012C",
+          "\U000F179B",
+          "\U000F0748",
+          "\U000F1A1B",
+          "\U000F02DC",
+          "\U000F0A02",
+          "\U000F0156",
+          "\U000F0C5F",
+          "\U000f0084",
+          "\U000f0091",
+          "$icon_tv",
+          "$icon_power",
+          "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+        ]
+  # http://materialdesignicons.com/cdn/7.4.47/
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: light60
+    size: 60
+    bpp: 4
+    glyphs: [
+      "\U000F0335",  # mdi-lightbulb
+      "\U000F0769",  # mdi-ceiling-light
+      "\U000F06B5",  # mdi-lamp
+      "\U000F08DD",  # mdi-floor-lamp
+      "\U000F12BA",  # mdi-string-lights
+      "\U000F091C",  # mdi-wall-sconce
+      "$icon_tv",
+      "$icon_power",
+      "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+    ]
+  # http://materialdesignicons.com/cdn/7.4.47/
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: light40
+    size: 40
+    bpp: 4
+    glyphs: [
+      "\U000F0335",  # mdi-lightbulb
+      "\U000F0769",  # mdi-ceiling-light
+      "\U000F06B5",  # mdi-lamp
+      "\U000F08DD",  # mdi-floor-lamp
+      "\U000F12BA",  # mdi-string-lights
+      "\U000F091C",  # mdi-wall-sconce
+      "$icon_tv",
+      "$icon_power",
+      "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+    ]
+
+  # http://materialdesignicons.com/cdn/7.4.47/
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: light30
+    size: 30
+    bpp: 4
+    glyphs: [
+      "\U000F0335",  # mdi-lightbulb
+      "\U000F0769",  # mdi-ceiling-light
+      "\U000F06B5",  # mdi-lamp
+      "\U000F08DD",  # mdi-floor-lamp
+      "\U000F12BA",  # mdi-string-lights
+      "\U000F091C",  # mdi-wall-sconce
+      "$icon_tv",
+      "$icon_power",
+      "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+    ]
+
+  # http://materialdesignicons.com/cdn/7.4.47/
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: light20
+    size: 20
+    bpp: 4
+    glyphs: [
+      "\U000F0335",  # mdi-lightbulb
+      "\U000F0769",  # mdi-ceiling-light
+      "\U000F06B5",  # mdi-lamp
+      "\U000F08DD",  # mdi-floor-lamp
+      "\U000F12BA",  # mdi-string-lights
+      "\U000F091C",  # mdi-wall-sconce
+      "$icon_tv",
+      "$icon_power",
+      "$icon_home",
+          "$icon_volume_down",
+          "$icon_volume_up",
+          "$icon_volume_mute",
+          "$icon_menu_left",
+          "$icon_menu_right",
+          "$icon_menu_down",
+          "$icon_menu_up",
+          "$icon_channel_up",
+          "$icon_channel_down",
+          "$icon_menu_ok",
+    ]
+  - file: 'https://github.com/Templarian/MaterialDesign-Webfont/raw/v7.4.47/fonts/materialdesignicons-webfont.ttf'
+    id: icons_100
+    size: 100
+    bpp: 4
+    glyphs: [
+      "\U000F0594", # clear-night
+      "\U000F0590", # cloudy
+      "\U000F0F2F", # exceptional
+      "\U000F0591", # fog
+      "\U000F0592", # hail
+      "\U000F0593", # lightning
+      "\U000F067E", # lightning-rainy
+      "\U000F0595", # partlycloudy
+      "\U000F0596", # pouring
+      "\U000F0597", # rainy
+      "\U000F0598", # snowy
+      "\U000F067F", # snowy-rainy
+      "\U000F0599", # sunny
+      "\U000F059D", # windy
+      "\U000F059E", # windy-variant
+      "\U000F14E4", # sunny-off
+      ]
+
+color:
+# RGB color table
+# Imported from https://www.rapidtables.com/web/color/RGB_Color.html
+    - id: Black
+      hex: '000000'
+    - id: White
+      hex: 'FFFFFF'
+    - id: Red
+      hex: 'FF0000'
+    - id: Lime
+      hex: '00FF00'
+    - id: Blue
+      hex: '0000FF'
+    - id: Yellow
+      hex: 'FFFF00'
+    - id: Cyan_Aqua
+      hex: '00FFFF'
+    - id: Magenta_Fuchsia
+      hex: 'FF00FF'
+    - id: Silver
+      hex: 'C0C0C0'
+    - id: Gray
+      hex: '808080'
+    - id: Maroon
+      hex: '800000'
+    - id: Olive
+      hex: '808000'
+    - id: Green
+      hex: '008000'
+    - id: Purple
+      hex: '800080'
+    - id: Teal
+      hex: '008080'
+    - id: Navy
+      hex: '000080'
+    - id: Dark_Red
+      hex: '8B0000'
+    - id: Brown
+      hex: 'A52A2A'
+    - id: Firebrick
+      hex: 'B22222'
+    - id: Crimson
+      hex: 'DC143C'
+    - id: Tomato
+      hex: 'FF6347'
+    - id: Coral
+      hex: 'FF7F50'
+    - id: Indian_Red
+      hex: 'CD5C5C'
+    - id: Light_Coral
+      hex: 'F08080'
+    - id: Dark_Salmon
+      hex: 'E9967A'
+    - id: Salmon
+      hex: 'FA8072'
+    - id: Light_Salmon
+      hex: 'FFA07A'
+    - id: Orange_Red
+      hex: 'FF4500'
+    - id: Dark_Orange
+      hex: 'FF8C00'
+    - id: Orange
+      hex: 'FFA500'
+    - id: Gold
+      hex: 'FFD700'
+    - id: Dark_Golden_Rod
+      hex: 'B8860B'
+    - id: Golden_Rod
+      hex: 'DAA520'
+    - id: Pale_Golden_Rod
+      hex: 'EEE8AA'
+    - id: Dark_Khaki
+      hex: 'BDB76B'
+    - id: Khaki
+      hex: 'F0E68C'
+    - id: Yellow_Green
+      hex: '9ACD32'
+    - id: Dark_Olive_Green
+      hex: '556B2F'
+    - id: Olive_Drab
+      hex: '6B8E23'
+    - id: Lawn_Green
+      hex: '7CFC00'
+    - id: Chartreuse
+      hex: '7FFF00'
+    - id: Green_Yellow
+      hex: 'ADFF2F'
+    - id: Dark_Green
+      hex: '006400'
+    - id: Forest_Green
+      hex: '228B22'
+    - id: Lime_Green
+      hex: '32CD32'
+    - id: Light_Green
+      hex: '90EE90'
+    - id: Pale_Green
+      hex: '98FB98'
+    - id: Dark_Sea_Green
+      hex: '8FBC8F'
+    - id: Medium_Spring_Green
+      hex: '00FA9A'
+    - id: Spring_Green
+      hex: '00FF7F'
+    - id: Sea_Green
+      hex: '2E8B57'
+    - id: Medium_Aqua_Marine
+      hex: '66CDAA'
+    - id: Medium_Sea_Green
+      hex: '3CB371'
+    - id: Light_Sea_Green
+      hex: '20B2AA'
+    - id: Dark_Slate_Gray
+      hex: '2F4F4F'
+    - id: Dark_Cyan
+      hex: '008B8B'
+    - id: Aqua
+      hex: '00FFFF'
+    - id: Light_Cyan
+      hex: 'E0FFFF'
+    - id: Dark_Turquoise
+      hex: '00CED1'
+    - id: Turquoise
+      hex: '40E0D0'
+    - id: Medium_Turquoise
+      hex: '48D1CC'
+    - id: Pale_Turquoise
+      hex: 'AFEEEE'
+    - id: Aqua_Marine
+      hex: '7FFFD4'
+    - id: Powder_Blue
+      hex: 'B0E0E6'
+    - id: Cadet_Blue
+      hex: '5F9EA0'
+    - id: Steel_Blue
+      hex: '4682B4'
+    - id: Corn_Flower_Blue
+      hex: '6495ED'
+    - id: Deep_Sky_Blue
+      hex: '00BFFF'
+    - id: Dodger_Blue
+      hex: '1E90FF'
+    - id: Light_Blue
+      hex: 'ADD8E6'
+    - id: Sky_Blue
+      hex: '87CEEB'
+    - id: Light_Sky_Blue
+      hex: '87CEFA'
+    - id: Midnight_Blue
+      hex: '191970'
+    - id: Dark_Blue
+      hex: '00008B'
+    - id: Medium_Blue
+      hex: '0000CD'
+    - id: Royal_Blue
+      hex: '4169E1'
+    - id: Blue_Violet
+      hex: '8A2BE2'
+    - id: Indigo
+      hex: '4B0082'
+    - id: Dark_Slate_Blue
+      hex: '483D8B'
+    - id: Slate_Blue
+      hex: '6A5ACD'
+    - id: Medium_Slate_Blue
+      hex: '7B68EE'
+    - id: Medium_Purple
+      hex: '9370DB'
+    - id: Dark_Magenta
+      hex: '8B008B'
+    - id: Dark_Violet
+      hex: '9400D3'
+    - id: Dark_Orchid
+      hex: '9932CC'
+    - id: Medium_Orchid
+      hex: 'BA55D3'
+    - id: Thistle
+      hex: 'D8BFD8'
+    - id: Plum
+      hex: 'DDA0DD'
+    - id: Violet
+      hex: 'EE82EE'
+    - id: Orchid
+      hex: 'DA70D6'
+    - id: Medium_Violet_Red
+      hex: 'C71585'
+    - id: Pale_Violet_Red
+      hex: 'DB7093'
+    - id: Deep_Pink
+      hex: 'FF1493'
+    - id: Hot_Pink
+      hex: 'FF69B4'
+    - id: Light_Pink
+      hex: 'FFB6C1'
+    - id: Pink
+      hex: 'FFC0CB'
+    - id: Antique_White
+      hex: 'FAEBD7'
+    - id: Beige
+      hex: 'F5F5DC'
+    - id: Bisque
+      hex: 'FFE4C4'
+    - id: Blanched_Almond
+      hex: 'FFEBCD'
+    - id: Wheat
+      hex: 'F5DEB3'
+    - id: Corn_Silk
+      hex: 'FFF8DC'
+    - id: Lemon_Chiffon
+      hex: 'FFFACD'
+    - id: Light_Golden_Rod_Yellow
+      hex: 'FAFAD2'
+    - id: Light_Yellow
+      hex: 'FFFFE0'
+    - id: Saddle_Brown
+      hex: '8B4513'
+    - id: Sienna
+      hex: 'A0522D'
+    - id: Chocolate
+      hex: 'D2691E'
+    - id: Peru
+      hex: 'CD853F'
+    - id: Sandy_Brown
+      hex: 'F4A460'
+    - id: Burly_Wood
+      hex: 'DEB887'
+    - id: Tan
+      hex: 'D2B48C'
+    - id: Rosy_Brown
+      hex: 'BC8F8F'
+    - id: Moccasin
+      hex: 'FFE4B5'
+    - id: Navajo_White
+      hex: 'FFDEAD'
+    - id: Peach_Puff
+      hex: 'FFDAB9'
+    - id: Misty_Rose
+      hex: 'FFE4E1'
+    - id: Lavender_Blush
+      hex: 'FFF0F5'
+    - id: Linen
+      hex: 'FAF0E6'
+    - id: Old_Lace
+      hex: 'FDF5E6'
+    - id: Papaya_Whip
+      hex: 'FFEFD5'
+    - id: Sea_Shell
+      hex: 'FFF5EE'
+    - id: Mint_Cream
+      hex: 'F5FFFA'
+    - id: Slate_Gray
+      hex: '708090'
+    - id: Light_Slate_Gray
+      hex: '778899'
+    - id: Light_Steel_Blue
+      hex: 'B0C4DE'
+    - id: Lavender
+      hex: 'E6E6FA'
+    - id: Floral_White
+      hex: 'FFFAF0'
+    - id: Alice_Blue
+      hex: 'F0F8FF'
+    - id: Ghost_White
+      hex: 'F8F8FF'
+    - id: Honeydew
+      hex: 'F0FFF0'
+    - id: Ivory
+      hex: 'FFFFF0'
+    - id: Azure
+      hex: 'F0FFFF'
+    - id: Snow
+      hex: 'FFFAFA'
+    - id: Very_Dark_Gray
+      hex: '313131'      
+    - id: Dim_Gray
+      hex: '696969'
+    - id: Dark_Gray
+      hex: 'A9A9A9'
+    - id: Light_Gray
+      hex: 'D3D3D3'
+    - id: Gainsboro
+      hex: 'DCDCDC'
+    - id: White_Smoke
+      hex: 'F5F5F5'
+# Extra colors
+    - id: Burnt_Sienna
+      hex: 'CC5E14'
