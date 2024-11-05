@@ -1,0 +1,143 @@
+- id: weather_cond_forecast
+  alias: 'MeteoFrance Forecast Condition'
+  trigger:
+    - platform: state
+      entity_id: weather.XXXXXXXX
+    - platform: state
+      entity_id: binary_sensor.esp32_touch_28_1_status
+      to: 'on'
+  action:
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_fr_cond_icon
+      data:
+        value: >
+          {% set d = {
+          "clear-night": "\U000F0594",
+          "cloudy": "\U000F0590",
+          "exceptional": "\U000F0F2F",
+          "fog": "\U000F0591",
+          "hail": "\U000F0592",
+          "lightning": "\U000F0593",
+          "lightning-rainy": "\U000F067E",
+          "partlycloudy": "\U000F0595",
+          "pouring": "\U000F0596",
+          "rainy": "\U000F0597",
+          "snowy": "\U000F0598",
+          "snowy-rainy": "\U000F067F",
+          "sunny": "\U000F0599",
+          "windy": "\U000F059D",
+          "windy-variant": "\U000F059E",
+          "unknown": "\U000F14E4",
+          "unavailable": "\U000F14E4",
+          } %}
+          {{ d.get( states('weather.XXXXXXXX') ) }}
+
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_fr_cond_name
+      data:
+        value: >
+          {% set d = {
+          "clear-night": "Clear Night",
+          "cloudy": "Cloudy",
+          "exceptional": "Except ional",
+          "fog": "Fog",
+          "hail": "Hail",
+          "lightning": "Lightning",
+          "lightning-rainy": "Lightning rainy",
+          "partlycloudy": "Partly cloudy",
+          "pouring": "Pouring",
+          "rainy": "Rainy",
+          "snowy": "Snowy",
+          "snowy-rainy": "Snowy rainy",
+          "sunny": "Sunny",
+          "windy": "Windy",
+          "windy-variant": "Windy cloudy",
+          "unknown": "Unknown",
+          "unavailable": "Unavai lable",
+          } %}
+          {{ d.get( states('weather.XXXXXXXX') ) }}
+
+- id: weather_temp_feels_like_forecast
+  alias: 'Weather Temperature Feels Like'
+  trigger:
+    - platform: state
+      entity_id: weather.XXXXXXXX
+    - platform: state
+      entity_id: binary_sensor.esp32_touch_28_1_status
+      to: 'on'
+  action:
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_fr_tempap
+      data:
+        value: "{{states('sensor.XXXXXXXX_temperature') | round(1)}} °C"
+        
+- id: weather_temp_forecast_temphi
+  alias: 'Weather Temperature Forecast Hi'
+  trigger:
+    - platform: time_pattern
+      hours: /1
+    - platform: homeassistant
+      event: start
+    - platform: state
+      entity_id: binary_sensor.esp32_touch_28_1_status
+      to: 'on'
+  action:
+    - service: weather.get_forecasts
+      data:
+        type: daily
+      target:
+        entity_id: weather.XXXXXXXX
+      response_variable: daily
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_fr_temphi
+      data:
+        value: "{{ daily['weather.XXXXXXXX'].forecast[0].temperature | round(1) }} °C"
+
+- id: weather_temp_forecast_templo
+  alias: 'Weather Temperature Forecast Lo'
+  trigger:
+    - platform: time_pattern
+      hours: /1
+    - platform: homeassistant
+      event: start
+    - platform: state
+      entity_id: binary_sensor.esp32_touch_28_1_status
+      to: 'on'
+  action:
+    - service: weather.get_forecasts
+      data:
+        type: daily
+      target:
+        entity_id: weather.XXXXXXXX
+      response_variable: daily
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_fr_templo
+      data:
+        value: "{{ daily['weather.XXXXXXXX'].forecast[0].templow | round(1)}} °C"
+
+- id: weather_temp_outdoor_now
+  alias: 'Weather Temperature Now'
+  trigger:
+    - platform: state
+      entity_id: sensor.exterieur_devant_th_temperature
+    - platform: state
+      entity_id: binary_sensor.esp32_touch_28_1_status
+      to: 'on'
+  action:
+    - action: text.set_value
+      target:
+        entity_id:
+          - text.esp32_touch_28_1_wd_out_now
+      data:
+        value: "{{states('sensor.exterieur_devant_th_temperature') | round(1)}} °C"
+
